@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Creative Testing Dashboard</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -22,6 +23,69 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;font-size:13px}
+
+/* ── NOTES ── */
+#notes-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:none;align-items:center;justify-content:center}
+#notes-modal.open{display:flex}
+#notes-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px}
+#notes-box h3{font-size:13px;font-weight:800;color:var(--text)}
+#notes-box h3 span{color:var(--blue);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;display:block;margin-top:2px}
+#notes-textarea{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:12px;color:var(--text);font-size:13px;font-family:'Manrope',sans-serif;resize:vertical;min-height:120px;outline:none;transition:border .15s;line-height:1.6}
+#notes-textarea:focus{border-color:var(--blue)}
+#notes-textarea::placeholder{color:var(--text3)}
+.notes-actions{display:flex;gap:8px;justify-content:flex-end}
+.notes-save{padding:8px 18px;background:var(--blue);border:none;border-radius:var(--rs);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif}
+.notes-save:hover{opacity:.85}
+.notes-clear{padding:8px 14px;background:var(--rbg);border:1px solid var(--rborder);border-radius:var(--rs);color:var(--red);font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif}
+.notes-cancel{padding:8px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif}
+.note-btn{background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:var(--rs);font-size:13px;line-height:1;transition:background .15s;position:relative}
+.note-btn:hover{background:var(--bg3)}
+.note-btn.has-note{background:rgba(91,156,246,.15);border:1px solid var(--bborder);color:var(--blue)}
+.note-btn.has-note::after{content:'✎';position:absolute;top:-5px;right:-5px;width:14px;height:14px;background:var(--blue);border-radius:50%;font-size:8px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* ── PROFILE ── */
+#profile-wrap{position:relative}
+#profile-btn{width:32px;height:32px;border-radius:50%;background:var(--bbg);border:1px solid var(--bborder);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;transition:all .15s}
+#profile-btn:hover{background:rgba(91,156,246,.2)}
+#profile-menu{position:absolute;top:40px;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);min-width:160px;z-index:300;display:none;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#profile-menu.open{display:block}
+.pm-item{padding:10px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;color:var(--text2)}
+.pm-item:hover{background:var(--bg3);color:var(--text)}
+.pm-divider{border:none;border-top:1px solid var(--border);margin:0}
+.pm-user{padding:10px 14px;font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;border-bottom:1px solid var(--border)}
+
+/* ── SETTINGS MODAL ── */
+#settings-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9997;display:none;align-items:center;justify-content:center}
+#settings-modal.open{display:flex}
+#settings-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:28px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
+#settings-box h2{font-size:15px;font-weight:800}
+.s-section{display:flex;flex-direction:column;gap:10px}
+.s-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:'IBM Plex Mono',monospace;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.s-row{display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;gap:10px}
+.s-label{font-size:12px;color:var(--text2);font-weight:600}
+.s-input-wrap{display:flex;flex-direction:column;gap:3px}
+.s-input-lbl{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.s-input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:7px 10px;color:var(--text);font-size:12px;font-family:'IBM Plex Mono',monospace;outline:none;width:100%;transition:border .15s}
+.s-input:focus{border-color:var(--blue)}
+.s-hint{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.s-actions{display:flex;gap:8px;justify-content:flex-end;padding-top:4px}
+.s-save{padding:9px 20px;background:var(--blue);border:none;border-radius:var(--rs);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif}
+.s-reset{padding:9px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif}
+.s-cancel{padding:9px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif}
+#notes-timestamp{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+
+/* ── LOGIN ── */
+#login-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+#login-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:40px 36px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:20px}
+#login-box h2{font-size:18px;font-weight:800;letter-spacing:-.3px;text-align:center}
+#login-box h2 span{color:var(--blue)}
+.login-field{display:flex;flex-direction:column;gap:6px}
+.login-field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.login-field input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:10px 12px;color:var(--text);font-size:13px;font-family:'Manrope',sans-serif;outline:none;transition:border .15s}
+.login-field input:focus{border-color:var(--blue)}
+#login-btn{padding:11px;background:var(--blue);border:none;border-radius:var(--rs);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:opacity .15s}
+#login-btn:hover{opacity:.85}
+#login-error{font-size:12px;color:var(--red);text-align:center;min-height:16px;font-weight:600}
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
 .hdr-title{font-size:15px;font-weight:800;letter-spacing:-.3px}
 .hdr-title span{color:var(--blue)}
@@ -85,6 +149,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 .sc-table td{padding:7px 10px;font-size:12px;border-top:1px solid var(--border);text-align:right;font-family:'IBM Plex Mono',monospace}
 .sc-table td:first-child{text-align:left;font-family:'Manrope',sans-serif;font-weight:700;color:var(--text)}
 .sc-g{color:var(--green)}.sc-y{color:var(--yellow)}.sc-r{color:var(--red)}.sc-t{color:var(--text2)}
+.sc-row-link:hover td{background:rgba(255,255,255,.04)}
 
 /* ── THEME ── */
 .theme-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
@@ -143,6 +208,16 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 .tt-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
 .tt-id{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--blue);line-height:1.8}
 #global-tt{display:none;position:fixed;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;z-index:99999;min-width:230px;box-shadow:0 8px 24px rgba(0,0,0,.7);pointer-events:none;white-space:normal}
+.search-wrap{position:relative;display:inline-flex}
+.search-suggestions{display:none;position:absolute;top:calc(100% + 3px);left:0;min-width:320px;max-width:440px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.5);overflow:hidden;max-height:280px;overflow-y:auto}
+.search-suggestions.open{display:block}
+.ss-item{padding:7px 12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+.ss-item:last-child{border-bottom:none}
+.ss-item:hover,.ss-item.focused{background:var(--bg4)}
+.ss-name{font-size:12px;font-weight:600;color:var(--text);font-family:'Manrope',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-meta{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.ss-match{color:var(--blue)}
+.ss-id-badge{display:inline-block;background:var(--bbg);border:1px solid var(--bborder);border-radius:3px;padding:1px 5px;font-size:9px;color:var(--blue);font-family:'IBM Plex Mono',monospace;margin-top:1px}
 #creativePopup{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center}
 #creativePopup.open{display:flex}
 .popup-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;width:min(860px,95vw);max-height:88vh;overflow-y:auto;position:relative}
@@ -178,15 +253,109 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 </head>
 <body>
 
+<!-- ── SETTINGS MODAL ── -->
+<div id="settings-modal">
+  <div id="settings-box">
+    <h2>⚙️ Threshold Settings</h2>
+
+    <div class="s-section">
+      <div class="s-section-title">CPL — Cost Per Lead (₹) · Lower is better</div>
+      <div class="s-row">
+        <span class="s-label">🟢 Green</span>
+        <div class="s-input-wrap"><span class="s-input-lbl">Max ₹ for Green</span><input class="s-input" id="s-cpl-green" type="number" step="0.1"></div>
+        <div class="s-input-wrap"><span class="s-input-lbl">Max ₹ for Yellow</span><input class="s-input" id="s-cpl-yellow" type="number" step="0.1"></div>
+      </div>
+      <div class="s-hint">Green: CPL &lt; value · Yellow: CPL ≤ value · Red: above Yellow</div>
+    </div>
+
+    <div class="s-section">
+      <div class="s-section-title">D3 — Cost per 3-Day Attendee (₹) · Lower is better</div>
+      <div class="s-row">
+        <span class="s-label">🟢 Green</span>
+        <div class="s-input-wrap"><span class="s-input-lbl">Max ₹ for Green</span><input class="s-input" id="s-d3-green" type="number" step="0.1"></div>
+        <div class="s-input-wrap"><span class="s-input-lbl">Max ₹ for Yellow</span><input class="s-input" id="s-d3-yellow" type="number" step="0.1"></div>
+      </div>
+      <div class="s-hint">Green: D3 &lt; value · Yellow: D3 ≤ value · Red: above Yellow</div>
+    </div>
+
+    <div class="s-section">
+      <div class="s-section-title">D7 — Cost per 7-Day Attendee (₹) · Lower is better</div>
+      <div class="s-row">
+        <span class="s-label">🟢 Green</span>
+        <div class="s-input-wrap"><span class="s-input-lbl">Max ₹ for Green</span><input class="s-input" id="s-d7-green" type="number" step="0.1"></div>
+        <div class="s-input-wrap"><span class="s-input-lbl">Max ₹ for Yellow</span><input class="s-input" id="s-d7-yellow" type="number" step="0.1"></div>
+      </div>
+      <div class="s-hint">Green: D7 &lt; value · Yellow: D7 ≤ value · Red: above Yellow</div>
+    </div>
+
+    <div class="s-section">
+      <div class="s-section-title">ROAS — Return on Ad Spend (×) · Higher is better</div>
+      <div class="s-row">
+        <span class="s-label">🟢 Green</span>
+        <div class="s-input-wrap"><span class="s-input-lbl">Min × for Green</span><input class="s-input" id="s-roas-green" type="number" step="0.1"></div>
+        <div class="s-input-wrap"><span class="s-input-lbl">Min × for Yellow</span><input class="s-input" id="s-roas-yellow" type="number" step="0.1"></div>
+      </div>
+      <div class="s-hint">Green: ROAS ≥ value · Yellow: ROAS &gt; value · Red: below Yellow</div>
+    </div>
+
+    <div class="s-actions">
+      <button class="s-reset" onclick="resetThresholds()">↺ Reset to Default</button>
+      <button class="s-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="s-save" onclick="saveSettings()">Save & Recompute</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── NOTES MODAL ── -->
+<div id="notes-modal">
+  <div id="notes-box">
+    <h3>📝 Notes <span id="notes-creative-label"></span></h3>
+    <textarea id="notes-textarea" placeholder="Type your thoughts, action items, observations…"></textarea>
+    <div id="notes-timestamp"></div>
+    <div class="notes-actions">
+      <button class="notes-clear" onclick="clearNote()">🗑 Clear</button>
+      <button class="notes-cancel" onclick="closeNotes()">Cancel</button>
+      <button class="notes-save" onclick="saveNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOGIN OVERLAY ── -->
+<div id="login-overlay">
+  <div id="login-box">
+    <div style="text-align:center"><img src="logo.png" style="height:64px;width:auto;margin-bottom:4px"></div>
+    <h2>Creative Testing <span>Dashboard</span></h2>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error"></div>
+    <button id="login-btn" onclick="doLogin()">Login</button>
+  </div>
+</div>
+
 <div class="hdr">
-  <div class="hdr-title">Creative Testing <span>Dashboard</span></div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <img src="logo.png" style="height:28px;width:auto">
+    <div class="hdr-title">Creative Testing <span>Dashboard</span></div>
+  </div>
   <div style="display:flex;align-items:center;gap:12px">
-    <div class="hdr-meta" id="dataInfo">Apr 7 – Jun 1, 2026 &nbsp;·&nbsp; 84 creatives</div>
-    <label id="uploadBtn" style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--bbg);border:1px solid var(--bborder);border-radius:var(--rs);color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .15s" onmouseover="this.style.background='rgba(91,156,246,.2)'" onmouseout="this.style.background='var(--bbg)'">
-      ↑ Upload CSV
-      <input type="file" accept=".csv" style="display:none" onchange="handleCSVUpload(this)">
-    </label>
+    <div class="hdr-meta" id="dataInfo">Loading…</div>
+    <button id="refreshBtn" onclick="loadFromGoogleSheets()" style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--bbg);border:1px solid var(--bborder);border-radius:var(--rs);color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .15s" onmouseover="this.style.background='rgba(91,156,246,.2)'" onmouseout="this.style.background='var(--bbg)'">↻ Refresh</button>
     <div id="uploadStatus" style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text3)"></div>
+    <div id="profile-wrap">
+      <button id="profile-btn" onclick="toggleProfileMenu(event)">S</button>
+      <div id="profile-menu">
+        <div class="pm-user">siddhant</div>
+        <div class="pm-item" onclick="openSettings();closeProfileMenu()">⚙️ Settings</div>
+        <hr class="pm-divider">
+        <div class="pm-item" style="color:var(--red)" onclick="doLogout()">⏻ Logout</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -196,6 +365,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
   <div class="tab" onclick="switchTab('cpl')">CPL View</div>
   <div class="tab" onclick="switchTab('d3d7')">D3 / D7</div>
   <div class="tab" onclick="switchTab('roas')">ROAS</div>
+  <div class="tab" onclick="switchTab('scaled')">⬆ Scaled (28d+)</div>
 </div>
 
 <div class="page">
@@ -203,16 +373,55 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 <!-- ══════ OVERVIEW ══════ -->
 <div class="panel active" id="panel-overview">
 
+  <!-- Monthly Scorecard -->
+  <div class="sec">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="sec-label" style="margin-bottom:0">Monthly Scorecard</div>
+        <button id="scNavLeft"  onclick="shiftScorecard(-1)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);width:26px;height:26px;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;opacity:0.35">‹</button>
+        <button id="scNavRight" onclick="shiftScorecard(1)"  style="background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);width:26px;height:26px;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0">›</button>
+      </div>
+      <div class="theme-dd-wrap">
+        <button class="theme-dd-btn" id="scGlobalBtn" onclick="toggleDD('scGlobalMenu','scGlobalBtn')">🏷 Theme <span id="scGlobalLbl">All</span> ▾</button>
+        <div class="theme-dd-menu" id="scGlobalMenu" style="right:0;left:auto">
+          <div class="theme-dd-item" onclick="scGlobalPick('',this)"><input type="checkbox"> All themes</div>
+          <div class="theme-dd-item checked" onclick="scGlobalPick('Date Hook',this)"><input type="checkbox" checked>📅 Date Hook</div>
+          <div class="theme-dd-item checked" onclick="scGlobalPick('Problem Statement',this)"><input type="checkbox" checked>🩺 Problem Stmt</div>
+          <div class="theme-dd-item checked" onclick="scGlobalPick('Generic',this)"><input type="checkbox" checked>💬 Generic</div>
+          <div class="theme-dd-item checked" onclick="scGlobalPick('Social Proof',this)"><input type="checkbox" checked>⭐ Social Proof</div>
+          <div class="theme-dd-item checked" onclick="scGlobalPick('AI Creative',this)"><input type="checkbox" checked>🤖 AI Creative</div>
+        </div>
+      </div>
+    </div>
+    <div class="three-col" id="scorecardGrid"></div>
+  </div>
+
+  <!-- Creative Supply -->
+  <div class="sec">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div class="sec-label" style="margin-bottom:0">Creative Supply</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="fi" id="supplyBtn7"  onclick="setSupplyWindow(7)"  style="background:var(--gbg);color:var(--green);border-color:var(--gborder)">Last 7d</button>
+        <button class="fi" id="supplyBtn14" onclick="setSupplyWindow(14)">Last 14d</button>
+        <button class="fi" id="supplyBtn30" onclick="setSupplyWindow(30)">Last 30d</button>
+        <button class="fi" id="supplyBtnCustom" onclick="toggleSupplyCustom()">Custom ▾</button>
+        <div id="supplyCustomRange" style="display:none;align-items:center;gap:6px">
+          <input type="date" id="supplyFrom" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:12px" onchange="applySupplyCustom()">
+          <span style="color:var(--text3);font-size:12px">→</span>
+          <input type="date" id="supplyTo" style="background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:12px" onchange="applySupplyCustom()">
+        </div>
+      </div>
+    </div>
+    <div id="supplyGrid"></div>
+  </div>
+
+  <!-- Action Board -->
   <div class="sec">
     <div class="sec-label">Action Board</div>
-
-    <!-- Date Hooks -->
     <div class="ab-section">
       <div class="ab-section-title dh">📅 Date Hook Creatives &nbsp;<span style="font-size:10px;font-weight:500;color:var(--text2)">Active this week · CPL-only signal · 1-week lifecycle · relaunch same angle next Monday if Green</span><span style="margin-left:auto;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text3)" id="dhTotalNote"></span></div>
       <div class="ab-grid dh-grid" id="dhBoard"></div>
     </div>
-
-    <!-- Evergreens -->
     <div class="ab-section">
       <div class="ab-section-title ev">🌿 Evergreen Creatives &nbsp;<span style="font-size:10px;font-weight:500;color:var(--text2)">Full funnel signal · CPL → D3/D7 → ROAS · stage-based health score</span></div>
       <div class="ab-grid ev-grid" id="evBoard"></div>
@@ -221,21 +430,8 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 
   <div class="two-col sec">
     <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div class="sec-label" style="margin-bottom:0">Monthly Scorecard</div>
-        <div class="theme-dd-wrap">
-          <button class="theme-dd-btn" id="scGlobalBtn" onclick="toggleDD('scGlobalMenu','scGlobalBtn')">🏷 Theme <span id="scGlobalLbl">All</span> ▾</button>
-          <div class="theme-dd-menu" id="scGlobalMenu" style="right:0;left:auto">
-            <div class="theme-dd-item" onclick="scGlobalPick('',this)"><input type="checkbox"> All themes</div>
-            <div class="theme-dd-item checked" onclick="scGlobalPick('Date Hook',this)"><input type="checkbox" checked>📅 Date Hook</div>
-            <div class="theme-dd-item checked" onclick="scGlobalPick('Problem Statement',this)"><input type="checkbox" checked>🩺 Problem Stmt</div>
-            <div class="theme-dd-item checked" onclick="scGlobalPick('Generic',this)"><input type="checkbox" checked>💬 Generic</div>
-            <div class="theme-dd-item checked" onclick="scGlobalPick('Social Proof',this)"><input type="checkbox" checked>⭐ Social Proof</div>
-            <div class="theme-dd-item checked" onclick="scGlobalPick('AI Creative',this)"><input type="checkbox" checked>🤖 AI Creative</div>
-          </div>
-        </div>
-      </div>
-      <div class="three-col" id="scorecardGrid"></div>
+      <div class="sec-label">Theme Performance (avg Health Score)</div>
+      <div class="card" id="themeCard"></div>
     </div>
     <div>
       <div class="sec-label">Scoring Logic</div>
@@ -258,34 +454,20 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
     </div>
   </div>
 
-  <div class="two-col sec">
-    <div>
-      <div class="sec-label">Theme Performance (avg Health Score)</div>
-      <div class="card" id="themeCard"></div>
-    </div>
-    <div>
-      <div class="sec-label">Tag Distribution</div>
-      <div class="two-col">
-        <div class="card"><div class="card-title">CPL Tags</div><div class="chart-wrap"><canvas id="cplDonut"></canvas></div></div>
-        <div class="card"><div class="card-title">ROAS Tags</div><div class="chart-wrap"><canvas id="roasDonut"></canvas></div></div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <!-- ══════ ALL CREATIVES ══════ -->
 <div class="panel" id="panel-all">
   <div class="filters">
-    <input class="fi-input" type="text" placeholder="Search creative…" oninput="allS.q=this.value;allS.p=1;renderAll()">
+    <div class="search-wrap"><input class="fi-input" id="allSearch" type="text" placeholder="Search by name or creative ID…" autocomplete="off" oninput="allS.q=this.value;allS.p=1;renderAll();showSuggestions('allSearch','allSug',this.value,'all')" onfocus="showSuggestions('allSearch','allSug',this.value,'all')" onkeydown="navSuggestions(event,'allSug','all')"><div class="search-suggestions" id="allSug"></div></div>
     <div class="theme-dd-wrap">
       <button class="theme-dd-btn" id="allThemeBtn" onclick="toggleDD('allThemeMenu','allThemeBtn')">🏷 Theme <span id="allThemeLbl">All</span> ▾</button>
       <div class="theme-dd-menu" id="allThemeMenu">
-        <div class="theme-dd-item checked" onclick="toggleThemeDd('Date Hook',this)"><input type="checkbox" checked>📅 Date Hook</div>
-        <div class="theme-dd-item checked" onclick="toggleThemeDd('Problem Statement',this)"><input type="checkbox" checked>🩺 Problem Stmt</div>
-        <div class="theme-dd-item checked" onclick="toggleThemeDd('Generic',this)"><input type="checkbox" checked>💬 Generic</div>
-        <div class="theme-dd-item checked" onclick="toggleThemeDd('Social Proof',this)"><input type="checkbox" checked>⭐ Social Proof</div>
-        <div class="theme-dd-item checked" onclick="toggleThemeDd('AI Creative',this)"><input type="checkbox" checked>🤖 AI Creative</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('all','Date Hook',this)"><input type="checkbox">📅 Date Hook</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('all','Problem Statement',this)"><input type="checkbox">🩺 Problem Stmt</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('all','Generic',this)"><input type="checkbox">💬 Generic</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('all','Social Proof',this)"><input type="checkbox">⭐ Social Proof</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('all','AI Creative',this)"><input type="checkbox">🤖 AI Creative</div>
       </div>
     </div>
     <div class="theme-dd-wrap">
@@ -305,7 +487,14 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
     <span style="color:var(--border2);padding:0 4px">|</span>
     <button class="fi" id="btnActive" onclick="toggleStatus('active',this)">● Active</button>
     <button class="fi" id="btnPaused" onclick="toggleStatus('paused',this)">⏸ Paused</button>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="allMonthBtn" onclick="toggleDD('allMonthMenu','allMonthBtn')">🗓 <span id="allMonthLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="allMonthMenu" style="min-width:140px"></div>
+    </div>
     <span class="cnt" id="all-cnt"></span>
+    <button class="fi" id="allBtnNotes" onclick="toggleNotesFilter('all')" title="Show only creatives with notes">📝 Has Notes</button>
+    <button class="fi" style="margin-left:auto" onclick="downloadCSV('all')">⬇ Download CSV</button>
   </div>
   <div class="tbl-wrap">
     <table class="dtbl">
@@ -317,12 +506,13 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
         <th onclick="sortA('health_score')" class="srt">Score</th>
         <th>Confidence</th>
         <th onclick="sortA('action')">Action</th>
-        <th onclick="sortA('cpl_tag')">CPL Tag</th>
         <th onclick="sortA('cpl_val')">CPL ₹</th>
+        <th onclick="sortA('cpl_tag')">CPL Tag</th>
         <th onclick="sortA('cost_d3_tag')">D3</th>
         <th onclick="sortA('cost_d7_tag')">D7</th>
         <th onclick="sortA('roas_tag')">ROAS</th>
         <th onclick="sortA('total_spend')">Spend</th>
+        <th>Notes</th>
       </tr></thead>
       <tbody id="allBody"></tbody>
     </table>
@@ -333,7 +523,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 <!-- ══════ CPL ══════ -->
 <div class="panel" id="panel-cpl">
   <div class="filters">
-    <input class="fi-input" type="text" placeholder="Search…" oninput="cplS.q=this.value;cplS.p=1;renderCpl()">
+    <div class="search-wrap"><input class="fi-input" id="cplSearch" type="text" placeholder="Search by name or creative ID…" autocomplete="off" oninput="cplS.q=this.value;cplS.p=1;renderCpl();showSuggestions('cplSearch','cplSug',this.value,'cpl')" onfocus="showSuggestions('cplSearch','cplSug',this.value,'cpl')" onkeydown="navSuggestions(event,'cplSug','cpl')"><div class="search-suggestions" id="cplSug"></div></div>
     <div class="theme-dd-wrap">
       <button class="theme-dd-btn" id="cplThemeBtn" onclick="toggleDD('cplThemeMenu','cplThemeBtn')">🏷 Theme <span id="cplThemeLbl">All</span> ▾</button>
       <div class="theme-dd-menu" id="cplThemeMenu">
@@ -350,19 +540,27 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
     <span style="color:var(--border2);padding:0 4px">|</span>
     <button class="fi" id="cplBtnActive" onclick="toggleTabStatus(cplS,'active','cplBtnActive','cplBtnPaused',renderCpl)">● Active</button>
     <button class="fi" id="cplBtnPaused" onclick="toggleTabStatus(cplS,'paused','cplBtnActive','cplBtnPaused',renderCpl)">⏸ Paused</button>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="cplMonthBtn" onclick="toggleDD('cplMonthMenu','cplMonthBtn')">🗓 <span id="cplMonthLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="cplMonthMenu" style="min-width:140px"></div>
+    </div>
     <span class="cnt" id="cpl-cnt"></span>
+    <button class="fi" id="cplBtnNotes" onclick="toggleNotesFilter('cpl')" title="Show only creatives with notes">📝 Has Notes</button>
+    <button class="fi" style="margin-left:auto" onclick="downloadCSV('cpl')">⬇ Download CSV</button>
   </div>
   <div class="tbl-wrap">
     <table class="dtbl"><thead><tr>
+      <th>Status</th>
       <th onclick="sortC('key')">Creative</th>
       <th onclick="sortC('theme')">Theme</th>
       <th onclick="sortC('age')" class="srt">Age</th>
-      <th>Status</th>
       <th onclick="sortC('cpl_val')">CPL ₹</th>
       <th>CPL Tag</th>
       <th>D3</th><th>D7</th><th>ROAS</th>
       <th onclick="sortC('total_spend')">Spend</th>
       <th onclick="sortC('total_leads')">Leads</th>
+      <th>Notes</th>
     </tr></thead>
     <tbody id="cplBody"></tbody></table>
     <div class="pag" id="cplPag"></div>
@@ -372,7 +570,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 <!-- ══════ D3/D7 ══════ -->
 <div class="panel" id="panel-d3d7">
   <div class="filters">
-    <input class="fi-input" type="text" placeholder="Search…" oninput="d3S.q=this.value;d3S.p=1;renderD3()">
+    <div class="search-wrap"><input class="fi-input" id="d3Search" type="text" placeholder="Search by name or creative ID…" autocomplete="off" oninput="d3S.q=this.value;d3S.p=1;renderD3();showSuggestions('d3Search','d3Sug',this.value,'d3d7')" onfocus="showSuggestions('d3Search','d3Sug',this.value,'d3d7')" onkeydown="navSuggestions(event,'d3Sug','d3d7')"><div class="search-suggestions" id="d3Sug"></div></div>
     <div class="theme-dd-wrap">
       <button class="theme-dd-btn" id="d3ThemeBtn" onclick="toggleDD('d3ThemeMenu','d3ThemeBtn')">🏷 Theme <span id="d3ThemeLbl">All</span> ▾</button>
       <div class="theme-dd-menu" id="d3ThemeMenu">
@@ -392,19 +590,27 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
     <span style="color:var(--border2);padding:0 4px">|</span>
     <button class="fi" id="d3BtnActive" onclick="toggleTabStatus(d3S,'active','d3BtnActive','d3BtnPaused',renderD3)">● Active</button>
     <button class="fi" id="d3BtnPaused" onclick="toggleTabStatus(d3S,'paused','d3BtnActive','d3BtnPaused',renderD3)">⏸ Paused</button>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="d3MonthBtn" onclick="toggleDD('d3MonthMenu','d3MonthBtn')">🗓 <span id="d3MonthLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="d3MonthMenu" style="min-width:140px"></div>
+    </div>
     <span class="cnt" id="d3-cnt"></span>
+    <button class="fi" id="d3BtnNotes" onclick="toggleNotesFilter('d3')" title="Show only creatives with notes">📝 Has Notes</button>
+    <button class="fi" style="margin-left:auto" onclick="downloadCSV('d3')">⬇ Download CSV</button>
   </div>
   <div class="tbl-wrap">
     <table class="dtbl"><thead><tr>
+      <th>Status</th>
       <th onclick="sortD('key')">Creative</th>
       <th onclick="sortD('theme')">Theme</th>
       <th onclick="sortD('age')" class="srt">Age</th>
-      <th>Status</th>
       <th>CPL</th>
       <th onclick="sortD('cost_d3_val')">Cost D3 ₹</th><th>D3 Tag</th>
       <th onclick="sortD('cost_d7_val')">Cost D7 ₹</th><th>D7 Tag</th>
       <th>ROAS</th>
       <th onclick="sortD('total_spend')">Spend</th>
+      <th>Notes</th>
     </tr></thead>
     <tbody id="d3Body"></tbody></table>
     <div class="pag" id="d3Pag"></div>
@@ -414,7 +620,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 <!-- ══════ ROAS ══════ -->
 <div class="panel" id="panel-roas">
   <div class="filters">
-    <input class="fi-input" type="text" placeholder="Search…" oninput="roS.q=this.value;roS.p=1;renderRo()">
+    <div class="search-wrap"><input class="fi-input" id="roSearch" type="text" placeholder="Search by name or creative ID…" autocomplete="off" oninput="roS.q=this.value;roS.p=1;renderRo();showSuggestions('roSearch','roSug',this.value,'roas')" onfocus="showSuggestions('roSearch','roSug',this.value,'roas')" onkeydown="navSuggestions(event,'roSug','roas')"><div class="search-suggestions" id="roSug"></div></div>
     <div class="theme-dd-wrap">
       <button class="theme-dd-btn" id="roThemeBtn" onclick="toggleDD('roThemeMenu','roThemeBtn')">🏷 Theme <span id="roThemeLbl">All</span> ▾</button>
       <div class="theme-dd-menu" id="roThemeMenu">
@@ -431,21 +637,72 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
     <span style="color:var(--border2);padding:0 4px">|</span>
     <button class="fi" id="roBtnActive" onclick="toggleTabStatus(roS,'active','roBtnActive','roBtnPaused',renderRo)">● Active</button>
     <button class="fi" id="roBtnPaused" onclick="toggleTabStatus(roS,'paused','roBtnActive','roBtnPaused',renderRo)">⏸ Paused</button>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="roMonthBtn" onclick="toggleDD('roMonthMenu','roMonthBtn')">🗓 <span id="roMonthLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="roMonthMenu" style="min-width:140px"></div>
+    </div>
     <span class="cnt" id="ro-cnt"></span>
+    <button class="fi" id="roBtnNotes" onclick="toggleNotesFilter('ro')" title="Show only creatives with notes">📝 Has Notes</button>
+    <button class="fi" style="margin-left:auto" onclick="downloadCSV('ro')">⬇ Download CSV</button>
   </div>
   <div class="tbl-wrap">
     <table class="dtbl"><thead><tr>
+      <th>Status</th>
       <th onclick="sortR('key')">Creative</th>
       <th onclick="sortR('theme')">Theme</th>
       <th onclick="sortR('age')" class="srt">Age</th>
-      <th>Status</th>
-      <th>Score</th><th>Confidence</th>
+      <th onclick="sortR('health_score')">Score</th><th>Confidence</th>
       <th>CPL</th><th>D3</th><th>D7</th>
       <th onclick="sortR('roas_val')">ROAS</th><th>Tag</th>
       <th onclick="sortR('total_spend')">Spend</th>
+      <th>Notes</th>
     </tr></thead>
     <tbody id="roBody"></tbody></table>
     <div class="pag" id="roPag"></div>
+  </div>
+</div>
+
+<!-- ══════ SCALED ══════ -->
+<div class="panel" id="panel-scaled">
+  <div class="filters">
+    <div class="search-wrap"><input class="fi-input" id="scSearch" type="text" placeholder="Search by name or creative ID…" autocomplete="off" oninput="scS.q=this.value;scS.p=1;renderScaled();showSuggestions('scSearch','scSug',this.value,'scaled')" onfocus="showSuggestions('scSearch','scSug',this.value,'scaled')" onkeydown="navSuggestions(event,'scSug','scaled')"><div class="search-suggestions" id="scSug"></div></div>
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="scThemeBtn" onclick="toggleDD('scThemeMenu','scThemeBtn')">🏷 Theme <span id="scThemeLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="scThemeMenu">
+        <div class="theme-dd-item" onclick="toggleTabTheme('sc','Date Hook',this)"><input type="checkbox">📅 Date Hook</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('sc','Problem Statement',this)"><input type="checkbox">🩺 Problem Stmt</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('sc','Generic',this)"><input type="checkbox">💬 Generic</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('sc','Social Proof',this)"><input type="checkbox">⭐ Social Proof</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('sc','AI Creative',this)"><input type="checkbox">🤖 AI Creative</div>
+      </div>
+    </div>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <button class="fi" id="scBtnActive" onclick="toggleTabStatus(scS,'active','scBtnActive','scBtnPaused',renderScaled)">● Active</button>
+    <button class="fi" id="scBtnPaused" onclick="toggleTabStatus(scS,'paused','scBtnActive','scBtnPaused',renderScaled)">⏸ Paused</button>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <button class="fi" id="scBtnNotes" onclick="toggleNotesFilter('sc')" title="Show only creatives with notes">📝 Has Notes</button>
+    <span class="cnt" id="sc-cnt"></span>
+    <button class="fi" style="margin-left:auto" onclick="downloadCSV('sc')">⬇ Download CSV</button>
+  </div>
+  <div class="tbl-wrap">
+    <table class="dtbl"><thead><tr>
+      <th>Status</th>
+      <th onclick="sortSc('key')">Creative</th>
+      <th onclick="sortSc('theme')">Theme</th>
+      <th onclick="sortSc('active_days')" class="srt">Active Days</th>
+      <th>Days Past 28</th>
+      <th onclick="sortSc('sc_cpl_val')">CPL ₹</th><th>CPL Tag</th>
+      <th onclick="sortSc('sc_d3_val')">D3 ₹</th><th>D3 Tag</th>
+      <th onclick="sortSc('sc_d7_val')">D7 ₹</th><th>D7 Tag</th>
+      <th onclick="sortSc('sc_roas_val')">ROAS</th><th>ROAS Tag</th>
+      <th onclick="sortSc('sc_health_score')">Score</th>
+      <th onclick="sortSc('total_spend')">Spend</th>
+      <th onclick="sortSc('total_leads')">Leads</th>
+      <th>Notes</th>
+    </tr></thead>
+    <tbody id="scBody"></tbody></table>
+    <div class="pag" id="scPag"></div>
   </div>
 </div>
 
@@ -467,6 +724,27 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 <div id="global-tt"><div class="tt-label" id="tt-label"></div><div class="tt-id" id="tt-ids"></div></div>
 
 <script>
+// ── AUTH ──
+const USERS = { 'siddhant': 'siddhant123' };
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err  = document.getElementById('login-error');
+  if (USERS[user] && USERS[user] === pass) {
+    sessionStorage.setItem('cd_auth', '1');
+    document.getElementById('login-overlay').style.display = 'none';
+  } else {
+    err.textContent = 'Incorrect username or password.';
+    document.getElementById('login-pass').value = '';
+  }
+}
+
+// Check session on load
+if (sessionStorage.getItem('cd_auth') === '1') {
+  document.getElementById('login-overlay').style.display = 'none';
+}
+
 const RAW = {"creatives":[{"key":"Kamya(FatBurnAI_2)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(FatBurnAI_2)V1-VideoAd1-23Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-01","cpl_val":16.43,"cpl_tag":"Red","cost_d3_val":93.86,"cost_d3_tag":"Red","cost_d7_val":318.99,"cost_d7_tag":"Red","roas_val":0.09,"roas_tag":"Red","total_spend":5538,"total_leads":337,"is_ai":true,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120241928840020232"]},{"key":"Kamya(AIReview)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(AIReview)V1-VideoAd1-37Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-05-01","cpl_val":43.2,"cpl_tag":"Red","cost_d3_val":82.59,"cost_d3_tag":"Red","cost_d7_val":141.01,"cost_d7_tag":"Red","roas_val":0.25,"roas_tag":"Red","total_spend":5616,"total_leads":130,"is_ai":true,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120241928943920232"]},{"key":"Kamya(AreAajNhi)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(AreAajNhi)V1-VideoAd1-29Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Social Proof","dh_phase":null,"paused_from":null,"cpl_val":22.42,"cpl_tag":"Red","cost_d3_val":61.69,"cost_d3_tag":"Red","cost_d7_val":120.58,"cost_d7_tag":"Red","roas_val":1.53,"roas_tag":"Yellow","total_spend":19659,"total_leads":871,"is_ai":false,"health_score":11,"confidence":"Medium","action":"Pause","utm_ids":["120241928993600232"]},{"key":"Kamya(13AprilSe_New)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(13AprilSe_New)V1-VideoAd1-18Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-24","cpl_val":6.77,"cpl_tag":"Green","cost_d3_val":22.37,"cost_d3_tag":"Green","cost_d7_val":52.88,"cost_d7_tag":"Green","roas_val":1.79,"roas_tag":"Yellow","total_spend":56262,"total_leads":8313,"is_ai":false,"health_score":100,"confidence":"High","action":"Historical","utm_ids":["120241930993850232"]},{"key":"Kamya(13April_2ndAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(13April_2ndAI)V1-VideoAd3-27Sec-30-03-2026","go_live":"2026-04-07","age":56,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-21","cpl_val":16.03,"cpl_tag":"Red","cost_d3_val":43.77,"cost_d3_tag":"Red","cost_d7_val":94.83,"cost_d7_tag":"Yellow","roas_val":0.12,"roas_tag":"Red","total_spend":3414,"total_leads":213,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120241931310180232"]},{"key":"Kamya(13April_1stAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(13April_1stAI)V1-VideoAd4-18Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-26","cpl_val":11.92,"cpl_tag":"Yellow","cost_d3_val":35.86,"cost_d3_tag":"Yellow","cost_d7_val":75.97,"cost_d7_tag":"Yellow","roas_val":0.96,"roas_tag":"Red","total_spend":4482,"total_leads":376,"is_ai":true,"health_score":50,"confidence":"Low","action":"Historical","utm_ids":["120241931397360232"]},{"key":"Kamya(13AprilSe_NewMumbai)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(13AprilSe_NewMumbai)V1-VideoAd1-18Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-19","cpl_val":20.89,"cpl_tag":"Red","cost_d3_val":38.14,"cost_d3_tag":"Red","cost_d7_val":54.61,"cost_d7_tag":"Green","roas_val":0.0,"roas_tag":"Red","total_spend":2403,"total_leads":115,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120241931443340232"]},{"key":"Kamya(KapadeTight)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(KapadeTight)V1-VideoAd1-20Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-01","cpl_val":23.18,"cpl_tag":"Red","cost_d3_val":57.11,"cost_d3_tag":"Red","cost_d7_val":104.47,"cost_d7_tag":"Red","roas_val":0.96,"roas_tag":"Red","total_spend":5540,"total_leads":239,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120241933020150232"]},{"key":"Kamya(PeriodsNahiAaRahe)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(PeriodsNahiAaRahe)V1-VideoAd1-30Sec-08-04-2026","go_live":"2026-04-08","age":55,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":11.81,"cpl_tag":"Yellow","cost_d3_val":35.47,"cost_d3_tag":"Yellow","cost_d7_val":103.34,"cost_d7_tag":"Red","roas_val":1.23,"roas_tag":"Yellow","total_spend":55258,"total_leads":4878,"is_ai":false,"health_score":40,"confidence":"High","action":"Pause","utm_ids":["120242000197710232","120242041250270232"]},{"key":"Kamya(SeediaChadteHi)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(SeediaChadteHi)V1-VideoAd1-20Sec-08-04-2026","go_live":"2026-04-08","age":55,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-06-01","cpl_val":26.79,"cpl_tag":"Red","cost_d3_val":57.52,"cost_d3_tag":"Red","cost_d7_val":98.91,"cost_d7_tag":"Red","roas_val":1.9,"roas_tag":"Green","total_spend":33188,"total_leads":1112,"is_ai":false,"health_score":29,"confidence":"High","action":"Pause","utm_ids":["120242000388020232"]},{"key":"Kamya(HairFall)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(HairFall)V1-VideoAd1-27Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-18","cpl_val":26.98,"cpl_tag":"Red","cost_d3_val":60.71,"cost_d3_tag":"Red","cost_d7_val":95.84,"cost_d7_tag":"Red","roas_val":0.18,"roas_tag":"Red","total_spend":5636,"total_leads":179,"is_ai":true,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242036933150232"]},{"key":"Kamya(MondaySeShuru)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(MondaySeShuru)V1-VideoAd1-18Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":10.98,"cpl_tag":"Yellow","cost_d3_val":32.46,"cost_d3_tag":"Green","cost_d7_val":83.41,"cost_d7_tag":"Yellow","roas_val":0.25,"roas_tag":"Red","total_spend":23745,"total_leads":1964,"is_ai":false,"health_score":48,"confidence":"High","action":"Pause","utm_ids":["120242038512210232"]},{"key":"Kamya(YogaStartKiya)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(YogaStartKiya)V1-VideoAd1-25Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-20","cpl_val":14.38,"cpl_tag":"Yellow","cost_d3_val":43.83,"cost_d3_tag":"Red","cost_d7_val":114.59,"cost_d7_tag":"Red","roas_val":0.37,"roas_tag":"Red","total_spend":11358,"total_leads":832,"is_ai":false,"health_score":16,"confidence":"Medium","action":"Pause","utm_ids":["120242039407780232"]},{"key":"Kamya(NeckPain)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(NeckPain)V1-VideoAd1-27Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-20","cpl_val":21.16,"cpl_tag":"Red","cost_d3_val":44.1,"cost_d3_tag":"Red","cost_d7_val":82.67,"cost_d7_tag":"Yellow","roas_val":1.19,"roas_tag":"Red","total_spend":13450,"total_leads":718,"is_ai":true,"health_score":11,"confidence":"Medium","action":"Pause","utm_ids":["120242040012650232"]},{"key":"(FatAiDiet)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-(FatAiDiet)V1-VideoAd1-25Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-04-29","cpl_val":37.4,"cpl_tag":"Red","cost_d3_val":119.48,"cost_d3_tag":"Red","cost_d7_val":195.51,"cost_d7_tag":"Red","roas_val":0.36,"roas_tag":"Red","total_spend":4301,"total_leads":115,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242040388250232"]},{"key":"Kamya(Weightgainorweightloss)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Weightgainorweightloss)V1-VideoAd1-25Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":10.05,"cpl_tag":"Yellow","cost_d3_val":35.34,"cost_d3_tag":"Yellow","cost_d7_val":91.07,"cost_d7_tag":"Yellow","roas_val":1.99,"roas_tag":"Green","total_spend":38438,"total_leads":3161,"is_ai":true,"health_score":64,"confidence":"High","action":"Watch","utm_ids":["120242040955960232"]},{"key":"Kamya(14lakhsejydalog)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(14lakhsejydalog)V1-VideoAd1-22Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-02","cpl_val":10.2,"cpl_tag":"Yellow","cost_d3_val":22.92,"cost_d3_tag":"Green","cost_d7_val":42.86,"cost_d7_tag":"Green","roas_val":1.9,"roas_tag":"Green","total_spend":6877,"total_leads":674,"is_ai":false,"health_score":84,"confidence":"Medium","action":"Scale","utm_ids":["120242041353150232"]},{"key":"Kamya(Agaraapbhiyahisochteho)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Agaraapbhiyahisochteho)V1-VideoAd1-26Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-07","cpl_val":16.44,"cpl_tag":"Red","cost_d3_val":31.63,"cost_d3_tag":"Green","cost_d7_val":55.06,"cost_d7_tag":"Green","roas_val":1.22,"roas_tag":"Yellow","total_spend":6295,"total_leads":383,"is_ai":false,"health_score":58,"confidence":"Medium","action":"Watch","utm_ids":["120242041711460232"]},{"key":"StaticAd1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Dhurandhar2Baccha-StaticAd1-NA-13-04-2026","go_live":"2026-04-14","age":49,"theme":"Generic","dh_phase":null,"paused_from":"2026-04-24","cpl_val":77.41,"cpl_tag":"Red","cost_d3_val":129.01,"cost_d3_tag":"Red","cost_d7_val":193.51,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":387,"total_leads":5,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242241185130232"]},{"key":"Kamya(20AprilSe_New)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(20AprilSe_New)V1-VideoAd1-18Sec-13-04-2026","go_live":"2026-04-13","age":50,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-30","cpl_val":8.23,"cpl_tag":"Green","cost_d3_val":25.49,"cost_d3_tag":"Green","cost_d7_val":64.26,"cost_d7_tag":"Green","roas_val":1.18,"roas_tag":"Red","total_spend":19728,"total_leads":2397,"is_ai":false,"health_score":100,"confidence":"Medium","action":"Historical","utm_ids":["120242270490660232"]},{"key":"Kamya(20AprilSe_Mumbai)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(20AprilSe_Mumbai)V1-VideoAd1-25Sec-13-04-2026","go_live":"2026-04-13","age":50,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-30","cpl_val":85.93,"cpl_tag":"Red","cost_d3_val":286.44,"cost_d3_tag":"Red","cost_d7_val":1288.97,"cost_d7_tag":"Red","roas_val":0.16,"roas_tag":"Red","total_spend":2578,"total_leads":30,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120242272735680232"]},{"key":"Kamya(20April_2ndAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(20April_2ndAI)V1-VideoAd4-27Sec-13-04-2026","go_live":"2026-04-13","age":50,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-30","cpl_val":10.54,"cpl_tag":"Yellow","cost_d3_val":27.6,"cost_d3_tag":"Green","cost_d7_val":57.92,"cost_d7_tag":"Green","roas_val":2.13,"roas_tag":"Green","total_spend":4112,"total_leads":390,"is_ai":true,"health_score":50,"confidence":"Low","action":"Historical","utm_ids":["120242272981210232"]},{"key":"Brain_AI_1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Brain_AI_1-VideoAd1-30Sec-16-04-2026","go_live":"2026-04-17","age":46,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-04-28","cpl_val":24.66,"cpl_tag":"Red","cost_d3_val":135.63,"cost_d3_tag":"Red","cost_d7_val":135.63,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":271,"total_leads":11,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242443451040232"]},{"key":"Kamya(AgarYeh14DinKaChalleng_AI_Plane3Sec)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(AgarYeh14DinKaChalleng_AI_Plane3Sec)V1-VideoAd1-27Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"AI Creative","dh_phase":null,"paused_from":"2026-04-29","cpl_val":28.15,"cpl_tag":"Red","cost_d3_val":49.68,"cost_d3_tag":"Red","cost_d7_val":84.46,"cost_d7_tag":"Yellow","roas_val":0.0,"roas_tag":"Red","total_spend":845,"total_leads":30,"is_ai":true,"health_score":12,"confidence":"Low","action":"Pause","utm_ids":["120242491145380232"]},{"key":"Kamya(DailyYoga_2_AI_Sket3Sec)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(DailyYoga_2_AI_Sket3Sec)V1-VideoAd1-41Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"AI Creative","dh_phase":null,"paused_from":"2026-04-25","cpl_val":41.75,"cpl_tag":"Red","cost_d3_val":93.94,"cost_d3_tag":"Red","cost_d7_val":187.89,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":376,"total_leads":9,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242495353160232"]},{"key":"Kamya(AgarAjjNahiTohKab_AI_Bike3Sec)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(AgarAjjNahiTohKab_AI_Bike3Sec)V1-VideoAd1-29Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"AI Creative","dh_phase":null,"paused_from":"2026-05-01","cpl_val":44.06,"cpl_tag":"Red","cost_d3_val":107.27,"cost_d3_tag":"Red","cost_d7_val":246.72,"cost_d7_tag":"Red","roas_val":0.17,"roas_tag":"Red","total_spend":2467,"total_leads":56,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242499151040232"]},{"key":"ITWork_AI_1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-ITWork_AI_1-VideoAd1-31Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"AI Creative","dh_phase":null,"paused_from":"2026-04-24","cpl_val":94.28,"cpl_tag":"Red","cost_d3_val":188.56,"cost_d3_tag":"Red","cost_d7_val":null,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":377,"total_leads":4,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242531904580232"]},{"key":"Kamya(IsMondaySe)V2","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(IsMondaySe)V2-VideoAd1-18Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"Generic","dh_phase":null,"paused_from":"2026-04-28","cpl_val":14.13,"cpl_tag":"Yellow","cost_d3_val":35.52,"cost_d3_tag":"Yellow","cost_d7_val":82.88,"cost_d7_tag":"Yellow","roas_val":0.0,"roas_tag":"Red","total_spend":1243,"total_leads":88,"is_ai":false,"health_score":44,"confidence":"Low","action":"Pause","utm_ids":["120242532255420232"]},{"key":"Kamya(KalSeStartKarunga)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(KalSeStartKarunga)V1-VideoAd1-26Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-20","cpl_val":34.8,"cpl_tag":"Red","cost_d3_val":76.93,"cost_d3_tag":"Red","cost_d7_val":108.66,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":4120,"total_leads":148,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242532899580232","120242720228280232","120243306081200232"]},{"key":"Kamya(27April_2ndAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(27April_2ndAI)V1-VideoAd6-18Sec-13-04-2026","go_live":"2026-04-18","age":45,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-06","cpl_val":8.95,"cpl_tag":"Green","cost_d3_val":19.8,"cost_d3_tag":"Green","cost_d7_val":38.12,"cost_d7_tag":"Green","roas_val":2.67,"roas_tag":"Green","total_spend":9149,"total_leads":1022,"is_ai":true,"health_score":100,"confidence":"Medium","action":"Historical","utm_ids":["120242592270800232"]},{"key":"Kamya(BeginnerHoYaaYeNhi)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(BeginnerHoYaaYeNhi)V1-VideoAd1-25Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":25.85,"cpl_tag":"Red","cost_d3_val":61.54,"cost_d3_tag":"Red","cost_d7_val":124.57,"cost_d7_tag":"Red","roas_val":1.07,"roas_tag":"Red","total_spend":10022,"total_leads":422,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242646735770232"]},{"key":"Kamya(Roz10MinYoga)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(Roz10MinYoga)V1-VideoAd1-26Sec-20-04-2026","go_live":"2026-05-30","age":3,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":8.03,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":1189,"total_leads":148,"is_ai":false,"health_score":100,"confidence":"Low","action":"Watch","utm_ids":["120242646985020232"]},{"key":"Kamya(PcosThyroidBP)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(PcosThyroidBP)V1-VideoAd1-30Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":8.32,"cpl_tag":"Green","cost_d3_val":28.31,"cost_d3_tag":"Green","cost_d7_val":75.41,"cost_d7_tag":"Yellow","roas_val":1.23,"roas_tag":"Yellow","total_spend":76565,"total_leads":8342,"is_ai":false,"health_score":76,"confidence":"High","action":"Scale","utm_ids":["120242647067910232"]},{"key":"Kamya(ASMR_Roj10MinYoga)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(ASMR_Roj10MinYoga)V1-VideoAd1-26Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Generic","dh_phase":null,"paused_from":"2026-04-29","cpl_val":7.55,"cpl_tag":"Green","cost_d3_val":36.24,"cost_d3_tag":"Yellow","cost_d7_val":90.6,"cost_d7_tag":"Yellow","roas_val":0.0,"roas_tag":"Red","total_spend":544,"total_leads":72,"is_ai":false,"health_score":62,"confidence":"Low","action":"Watch","utm_ids":["120242657012390232"]},{"key":"Kamya(ASMR_BPStressThyroid)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(ASMR_BPStressThyroid)V1-VideoAd1-24Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-04-29","cpl_val":21.36,"cpl_tag":"Red","cost_d3_val":70.19,"cost_d3_tag":"Red","cost_d7_val":122.84,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":491,"total_leads":23,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242657467310232"]},{"key":"Kamya(Review_TohHarBar)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_TohHarBar)V1-VideoAd1-37Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-05-18","cpl_val":30.22,"cpl_tag":"Red","cost_d3_val":75.76,"cost_d3_tag":"Red","cost_d7_val":149.58,"cost_d7_tag":"Red","roas_val":1.07,"roas_tag":"Red","total_spend":5537,"total_leads":175,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242677012060232"]},{"key":"Kamya(Review_ChangeWalking)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_ChangeWalking)V1-VideoAd1-45Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-04-23","cpl_val":45.4,"cpl_tag":"Red","cost_d3_val":181.61,"cost_d3_tag":"Red","cost_d7_val":363.21,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":363,"total_leads":8,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242677069110232"]},{"key":"Kamya(Review_IntniAcidity)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_IntniAcidity)V1-VideoAd1-28Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-04-29","cpl_val":16.99,"cpl_tag":"Red","cost_d3_val":113.27,"cost_d3_tag":"Red","cost_d7_val":339.82,"cost_d7_tag":"Red","roas_val":7.73,"roas_tag":"Green","total_spend":340,"total_leads":20,"is_ai":false,"health_score":12,"confidence":"Low","action":"Pause","utm_ids":["120242677120090232"]},{"key":"Kamya(Review_MeraThyroid)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_MeraThyroid)V1-VideoAd1-25Sec-17-04-2026","go_live":"2026-04-20","age":43,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-20","cpl_val":28.49,"cpl_tag":"Red","cost_d3_val":57.58,"cost_d3_tag":"Red","cost_d7_val":108.05,"cost_d7_tag":"Red","roas_val":0.11,"roas_tag":"Red","total_spend":5794,"total_leads":201,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242677183270232"]},{"key":"Kamya(Review_EkEkUngli)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_EkEkUngli)V1-VideoAd1-33Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-05-20","cpl_val":26.36,"cpl_tag":"Red","cost_d3_val":52.21,"cost_d3_tag":"Red","cost_d7_val":90.39,"cost_d7_tag":"Yellow","roas_val":0.64,"roas_tag":"Red","total_spend":5778,"total_leads":216,"is_ai":false,"health_score":11,"confidence":"Medium","action":"Pause","utm_ids":["120242677247680232"]},{"key":"Kamya(SaraDinAcidity)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(SaraDinAcidity)V1-VideoAd1-34Sec-21-04-2026","go_live":"2026-04-21","age":42,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-20","cpl_val":37.54,"cpl_tag":"Red","cost_d3_val":75.79,"cost_d3_tag":"Red","cost_d7_val":125.45,"cost_d7_tag":"Red","roas_val":0.88,"roas_tag":"Red","total_spend":8421,"total_leads":228,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242719570790232","120243156999050232","120243306076860232"]},{"key":"Kamya(27AprilSeShuru)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(27AprilSeShuru)V1-VideoAd1-25Sec-21-04-2026-DCO","go_live":"2026-04-21","age":42,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-02","cpl_val":46.87,"cpl_tag":"Red","cost_d3_val":140.6,"cost_d3_tag":"Red","cost_d7_val":193.32,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":1547,"total_leads":33,"is_ai":false,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120242720353660232"]},{"key":"Kamya(4MaySeShuru)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(4MaySeShuru)V1-VideoAd1-25Sec-24-04-2026","go_live":"2026-04-24","age":39,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-15","cpl_val":5.93,"cpl_tag":"Green","cost_d3_val":19.24,"cost_d3_tag":"Green","cost_d7_val":47.17,"cost_d7_tag":"Green","roas_val":1.88,"roas_tag":"Green","total_spend":47780,"total_leads":8056,"is_ai":false,"health_score":100,"confidence":"High","action":"Historical","utm_ids":["120242931918390232"]},{"key":"Kamya(14DayParents_BPThyroid)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(14DayParents_BPThyroid)V1-VideoAd1-28Sec-27-04-2026","go_live":"2026-04-27","age":36,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":10.19,"cpl_tag":"Yellow","cost_d3_val":24.6,"cost_d3_tag":"Green","cost_d7_val":35.09,"cost_d7_tag":"Green","roas_val":1.27,"roas_tag":"Yellow","total_spend":39563,"total_leads":3728,"is_ai":false,"health_score":71,"confidence":"High","action":"Scale","utm_ids":["120243068195670232"]},{"key":"Kamya(4MaySeShuru_2ndAI)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(4MaySeShuru_2ndAI)V1-VideoAd1-27Sec-27-04-2026","go_live":"2026-04-27","age":36,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-20","cpl_val":11.56,"cpl_tag":"Yellow","cost_d3_val":31.64,"cost_d3_tag":"Green","cost_d7_val":63.89,"cost_d7_tag":"Green","roas_val":1.62,"roas_tag":"Yellow","total_spend":16514,"total_leads":1428,"is_ai":true,"health_score":50,"confidence":"Medium","action":"Historical","utm_ids":["120243068298660232","120243133382780232"]},{"key":"Kamya(4MaySeShuru_NewAI)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(4MaySeShuru_NewAI)V1-VideoAd1-20Sec-27-04-2026","go_live":"2026-04-27","age":36,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-06-01","cpl_val":14.36,"cpl_tag":"Yellow","cost_d3_val":35.89,"cost_d3_tag":"Yellow","cost_d7_val":77.83,"cost_d7_tag":"Yellow","roas_val":2.25,"roas_tag":"Green","total_spend":14331,"total_leads":1046,"is_ai":true,"health_score":50,"confidence":"Medium","action":"Historical","utm_ids":["120243068400350232","120243133652190232"]},{"key":"Kamya(4MaySeShuru_MumAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(4MaySeShuru_MumAI)V1-VideoAd8-25Sec-28-04-2026","go_live":"2026-04-28","age":35,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-10","cpl_val":33.82,"cpl_tag":"Red","cost_d3_val":33.82,"cost_d3_tag":"Yellow","cost_d7_val":101.45,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":101,"total_leads":3,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243133579240232"]},{"key":"Kamya(HarBarBolteHo)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(HarBarBolteHo)V1-VideoAd1-22Sec-30-04-2026-Reedit","go_live":"2026-05-01","age":32,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-20","cpl_val":21.44,"cpl_tag":"Red","cost_d3_val":57.29,"cost_d3_tag":"Red","cost_d7_val":124.82,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":3495,"total_leads":163,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120243306151020232"]},{"key":"Kamya(11MaySe_New)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(11MaySe_New)V1-VideoAd1-25Sec-01-05-2026","go_live":"2026-05-01","age":32,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-25","cpl_val":9.86,"cpl_tag":"Green","cost_d3_val":28.32,"cost_d3_tag":"Green","cost_d7_val":59.56,"cost_d7_tag":"Green","roas_val":0.24,"roas_tag":"Red","total_spend":25407,"total_leads":2577,"is_ai":false,"health_score":100,"confidence":"High","action":"Historical","utm_ids":["120243344214730232"]},{"key":"Kamya(IsMondaySe_New)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(IsMondaySe_New)V1-VideoAd1-25Sec-01-05-2026","go_live":"2026-05-01","age":32,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":8.68,"cpl_tag":"Green","cost_d3_val":25.15,"cost_d3_tag":"Green","cost_d7_val":50.26,"cost_d7_tag":"Green","roas_val":0.48,"roas_tag":"Red","total_spend":90390,"total_leads":10666,"is_ai":false,"health_score":71,"confidence":"High","action":"Scale","utm_ids":["120243344221270232"]},{"key":"Kamya(11MaySe_AI3)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(11MaySe_AI3)V1-VideoAd1-20Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-20","cpl_val":17.42,"cpl_tag":"Red","cost_d3_val":53.34,"cost_d3_tag":"Red","cost_d7_val":121.93,"cost_d7_tag":"Red","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":3414,"total_leads":196,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243549876750232"]},{"key":"Kamya(11MaySe_AI2)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(11MaySe_AI2)V1-VideoAd1-27Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-20","cpl_val":16.23,"cpl_tag":"Red","cost_d3_val":41.24,"cost_d3_tag":"Red","cost_d7_val":84.84,"cost_d7_tag":"Yellow","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":2970,"total_leads":183,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243549924910232"]},{"key":"Kamya(11May_AI_Mumbai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(11May_AI_Mumbai)V1-VideoAd1-25Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-20","cpl_val":20.45,"cpl_tag":"Red","cost_d3_val":41.25,"cost_d3_tag":"Red","cost_d7_val":69.14,"cost_d7_tag":"Yellow","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4909,"total_leads":240,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243549925280232"]},{"key":"Kamya(HealthKoIngnore)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(HealthKoIngnore)V1-VideoAd1-24Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Generic","dh_phase":null,"paused_from":"2026-06-01","cpl_val":19.49,"cpl_tag":"Red","cost_d3_val":46.81,"cost_d3_tag":"Red","cost_d7_val":88.81,"cost_d7_tag":"Yellow","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":5205,"total_leads":267,"is_ai":false,"health_score":12,"confidence":"Medium","action":"Pause","utm_ids":["120243574576330232"]},{"key":"Kamya(Insta_1_Ghanta)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Insta_1_Ghanta)V1-VideoAd1-26Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-31","cpl_val":21.27,"cpl_tag":"Red","cost_d3_val":48.49,"cost_d3_tag":"Red","cost_d7_val":82.27,"cost_d7_tag":"Yellow","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":7231,"total_leads":340,"is_ai":false,"health_score":12,"confidence":"Medium","action":"Pause","utm_ids":["120243574614950232"]},{"key":"Kamya(KyaAapJanateHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(KyaAapJanateHai)V1-VideoAd1-28Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-26","cpl_val":35.29,"cpl_tag":"Red","cost_d3_val":69.55,"cost_d3_tag":"Red","cost_d7_val":123.28,"cost_d7_tag":"Red","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4799,"total_leads":136,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120243574617100232"]},{"key":"Kamya(18MaySeShuruHoRahaHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(18MaySeShuruHoRahaHai)V1-VideoAd1-19Sec-12-05-2026","go_live":"2026-05-13","age":20,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-31","cpl_val":9.38,"cpl_tag":"Green","cost_d3_val":29.5,"cost_d3_tag":"Green","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":16925,"total_leads":1805,"is_ai":true,"health_score":100,"confidence":"Medium","action":"Historical","utm_ids":["120243984503230232"]},{"key":"Kamya(18MaySeShuruHoRahaHai2)V2","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(18MaySeShuruHoRahaHai2)V2-VideoAd1-19Sec-12-05-2026","go_live":"2026-05-13","age":20,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-06-01","cpl_val":10.42,"cpl_tag":"Yellow","cost_d3_val":33.21,"cost_d3_tag":"Yellow","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":14875,"total_leads":1428,"is_ai":true,"health_score":50,"confidence":"Medium","action":"Historical","utm_ids":["120243985079110232"]},{"key":"Kamya(18MaySe_NewAIMumbai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(18MaySe_NewAIMumbai)V1-VideoAd1-19Sec-12-05-2026","go_live":"2026-05-13","age":20,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-27","cpl_val":16.28,"cpl_tag":"Red","cost_d3_val":39.45,"cost_d3_tag":"Red","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4379,"total_leads":269,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243985209380232"]},{"key":"Kamya(18MaySeShuruHoRahaHai_AI)AI","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(18MaySeShuruHoRahaHai_AI)AI-VideoAd1-24Sec-12-05-2026","go_live":"2026-05-13","age":20,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-31","cpl_val":9.53,"cpl_tag":"Green","cost_d3_val":34.01,"cost_d3_tag":"Yellow","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":7494,"total_leads":786,"is_ai":true,"health_score":100,"confidence":"Medium","action":"Historical","utm_ids":["120243985447720232"]},{"key":"Kamya(25MaySeShuruHoRahaHai_AI)AI","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(25MaySeShuruHoRahaHai_AI)AI-VideoAd1-29Sec-19-05-2026","go_live":"2026-05-19","age":14,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":9.33,"cpl_tag":"Green","cost_d3_val":29.59,"cost_d3_tag":"Green","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":18138,"total_leads":1945,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244442490630232"]},{"key":"Kamya(25MaySeShuruHoRahaHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(25MaySeShuruHoRahaHai)V1-VideoAd1-19Sec-19-05-2026","go_live":"2026-05-19","age":14,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":9.63,"cpl_tag":"Green","cost_d3_val":28.74,"cost_d3_tag":"Green","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":13342,"total_leads":1386,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244444045300232"]},{"key":"Kamya(AiCreativeStorytelling)AI","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(AiCreativeStorytelling)AI-VideoAd1-16Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"AI Creative","dh_phase":null,"paused_from":null,"cpl_val":13.9,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4698,"total_leads":338,"is_ai":true,"health_score":50,"confidence":"Low","action":"Maturing","utm_ids":["120244500018030232"]},{"key":"Kamya(Testimonial)V2","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Testimonial)V2-VideoAd1-23Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Social Proof","dh_phase":null,"paused_from":null,"cpl_val":37.8,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4612,"total_leads":122,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120244501265940232"]},{"key":"Kamya(FatAIV4)AI","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(FatAIV4)AI-VideoAd1-31Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":14.97,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4595,"total_leads":307,"is_ai":true,"health_score":50,"confidence":"Low","action":"Maturing","utm_ids":["120244501266150232"]},{"key":"Kamya(Testimonial)V3","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Testimonial)V3-VideoAd1-21Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Social Proof","dh_phase":null,"paused_from":null,"cpl_val":28.22,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4572,"total_leads":162,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120244504135570232"]},{"key":"(GharKaKaamKrteHoorSabKaDhayaanRakhteHo)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-(GharKaKaamKrteHoorSabKaDhayaanRakhteHo)V1-VideoAd1-24Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":9.94,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":9777,"total_leads":984,"is_ai":false,"health_score":100,"confidence":"Medium","action":"Watch","utm_ids":["120244504701620232"]},{"key":"Kamya(25MaySeShuruHoRahaHai)V3","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(25MaySeShuruHoRahaHai)V3-VideoAd1-25Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Date Hook","dh_phase":"wind_down","paused_from":"2026-06-01","cpl_val":7.13,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":15587,"total_leads":2186,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244505428100232"]},{"key":"Kamya(25MaySeShuruHoRahaHai)V4","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(25MaySeShuruHoRahaHai)V4-VideoAd1-25Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Date Hook","dh_phase":"wind_down","paused_from":"2026-05-31","cpl_val":22.42,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":1547,"total_leads":69,"is_ai":true,"health_score":10,"confidence":"Low","action":"Wind Down","utm_ids":["120244505730990232"]},{"key":"Kamya(1JunSeShuruHoRahaHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai)V1-VideoAd1-23Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":5.69,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":13827,"total_leads":2429,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244851871740232"]},{"key":"Kamya(1JunSeShuruHoRahaHai_AI)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai_AI)V1-VideoAd1-19Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":7.68,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":9713,"total_leads":1265,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244852119600232"]},{"key":"Kamya(1JunSeShuruHoRahaHai_AI2)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai_AI2)V1-VideoAd1-29Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":7.0,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":14616,"total_leads":2087,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244852190830232"]},{"key":"Kamya(1JunSeShuruHoRahaHai_(AI1)","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai_(AI1))V1-VideoAd4-25Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":5.47,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":22284,"total_leads":4075,"is_ai":true,"health_score":70,"confidence":"High","action":"Wind Down","utm_ids":["120244852275820232"]},{"key":"Kamya(1JunSeShuruHoRahaHai_(AI2)","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai_(AI2))V1-VideoAd5-25Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":13.06,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":2521,"total_leads":193,"is_ai":true,"health_score":40,"confidence":"Low","action":"Wind Down","utm_ids":["120244852333690232"]},{"key":"Kamya(1JunSeShuru)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuru)V1-VideoAd1-27Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":9.17,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4357,"total_leads":475,"is_ai":false,"health_score":70,"confidence":"Low","action":"Wind Down","utm_ids":["120244875256190232"]},{"key":"Kamya(1JunSeShuru_21Days)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuru_21Days)V1-VideoAd1-27Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":5.14,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":22482,"total_leads":4376,"is_ai":false,"health_score":70,"confidence":"High","action":"Wind Down","utm_ids":["120244892786230232"]},{"key":"Kamya(21DaysExercise)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(21DaysExercise)V1-VideoAd1-47Sec-25-05-2026","go_live":"2026-05-26","age":7,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":7.07,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":2200,"total_leads":311,"is_ai":false,"health_score":100,"confidence":"Low","action":"Watch","utm_ids":["120244952728890232"]},{"key":"Fat_AI_V8","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Fat_AI_V8-VideoAd1-28Sec-29-05-2026","go_live":"2026-05-30","age":3,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":16.3,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":636,"total_leads":39,"is_ai":true,"health_score":0,"confidence":"Low","action":"Maturing","utm_ids":["120245200853620232"]},{"key":"Kamya(Testimonial)V4","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Testimonial)V4-VideoAd1-19Sec-29-05-2026","go_live":"2026-05-30","age":3,"theme":"Social Proof","dh_phase":null,"paused_from":null,"cpl_val":32.3,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":581,"total_leads":18,"is_ai":false,"health_score":0,"confidence":"Low","action":"Maturing","utm_ids":["120245200854100232"]},{"key":"Kamya(14dayBenefits)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(14dayBenefits)V1-VideoAd1-25Sec-25-05-2026","go_live":"2026-05-30","age":3,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":11.97,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":695,"total_leads":58,"is_ai":false,"health_score":50,"confidence":"Low","action":"Maturing","utm_ids":["120245204457090232"]},{"key":"Kamya(ThakanAnxiety)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(ThakanAnxiety)V1-VideoAd1-27Sec-25-05-2026","go_live":"2026-05-30","age":3,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":20.27,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":689,"total_leads":34,"is_ai":false,"health_score":0,"confidence":"Low","action":"Maturing","utm_ids":["120245204521730232"]},{"key":"Kamya(AapakePass)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(AapakePass)V1-VideoAd1-29Sec-25-05-2026","go_live":"2026-05-30","age":3,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":13.85,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":692,"total_leads":50,"is_ai":false,"health_score":50,"confidence":"Low","action":"Maturing","utm_ids":["120245204536780232"]},{"key":"Kamya(8JunSeShuruHoRahaHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(8JunSeShuruHoRahaHai)V1-VideoAd1-23Sec-01-06-2026","go_live":"2026-06-01","age":1,"theme":"Date Hook","dh_phase":"too_early","paused_from":null,"cpl_val":17.06,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":358,"total_leads":21,"is_ai":true,"health_score":50,"confidence":"Low","action":"Too Early","utm_ids":["120245436659140232"]},{"key":"Kamya(8JunSeShuruHoRahaHai)","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(8JunSeShuruHoRahaHai)_(AI1))V1-VideoAd1-25Sec-01-06-2026","go_live":"2026-06-01","age":1,"theme":"Date Hook","dh_phase":"too_early","paused_from":null,"cpl_val":30.45,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":1918,"total_leads":63,"is_ai":true,"health_score":50,"confidence":"Low","action":"Too Early","utm_ids":["120245437025690232","120245437414570232","120245439521960232","120245440002980232"]}],"scorecard":{"current":[{"metric":"CPL","total":2,"green":0,"yellow":0,"red":2},{"metric":"Cost D3","total":2,"green":0,"yellow":0,"red":0},{"metric":"Cost D7","total":2,"green":0,"yellow":0,"red":0},{"metric":"ROAS","total":2,"green":0,"yellow":0,"red":0}],"prev1":[{"metric":"CPL","total":36,"green":16,"yellow":6,"red":14},{"metric":"Cost D3","total":36,"green":5,"yellow":2,"red":8},{"metric":"Cost D7","total":36,"green":2,"yellow":4,"red":3},{"metric":"ROAS","total":36,"green":0,"yellow":0,"red":3}],"prev2":[{"metric":"CPL","total":46,"green":6,"yellow":11,"red":29},{"metric":"Cost D3","total":46,"green":11,"yellow":7,"red":28},{"metric":"Cost D7","total":46,"green":10,"yellow":11,"red":25},{"metric":"ROAS","total":46,"green":8,"yellow":7,"red":31}],"cur_month":"2026-06","prev1_month":"2026-05","prev2_month":"2026-04"},"theme_summary":{"Problem Statement":{"count":16,"avg_score":20,"green_rate":6},"Social Proof":{"count":9,"avg_score":6,"green_rate":0},"Date Hook":{"count":34,"avg_score":51,"green_rate":47},"Generic":{"count":20,"avg_score":40,"green_rate":25},"AI Creative":{"count":5,"avg_score":12,"green_rate":0}}};
 
 const C = RAW.creatives;
@@ -481,11 +759,8 @@ const tagH = t => {
 };
 const spendH = n => '₹'+(n>=1000?(n/1000).toFixed(0)+'K':n);
 const nameCell = (c, maxLen=28) => {
-  const ids = c.utm_ids ? c.utm_ids : [];
-  const label = `Creative ID${ids.length>1?'s':''}`;
-  const idsDisplay = ids.slice(0,5).join('<br>') + (ids.length>5?`<br>+${ids.length-5} more`:'');
   const keyEsc = c.key.replace(/'/g,"\\'");
-  return `<div class="cr-tooltip" style="cursor:pointer" onmouseenter="showTT(event,'${label}','${idsDisplay}')" onmouseleave="hideTT()" onclick="openPopup('${keyEsc}')">${c.key.substring(0,maxLen)}${c.is_ai?` <span class="tag tai">AI</span>`:''}</div>`;
+  return `<div style="cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onclick="openPopup('${keyEsc}')">${c.key.substring(0,maxLen)}${c.is_ai?` <span class="tag tai">AI</span>`:''}</div>`;
 };
 const scorePill = s => `<span class="score-pill ${s>=70?'sp-h':s>=50?'sp-m':'sp-l'}">${s}</span>`;
 const confH = c => `<span class="conf-dot cd${c[0]}"></span><span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:${c==='High'?'var(--green)':c==='Medium'?'var(--yellow)':'var(--text3)'}">${c}</span>`;
@@ -598,23 +873,7 @@ function initOverview(){
   const THEMES_ALL = ['Date Hook','Problem Statement','Generic','Social Proof','AI Creative'];
   const THEME_ICONS = {'Date Hook':'📅','Problem Statement':'🩺','Generic':'💬','Social Proof':'⭐','AI Creative':'🤖'};
 
-  const months=[
-    {label:'Current',month:SC.cur_month, id:'sc0'},
-    {label:'Month -1',month:SC.prev1_month, id:'sc1'},
-    {label:'Month -2',month:SC.prev2_month, id:'sc2'},
-  ];
-
-  document.getElementById('scorecardGrid').innerHTML = months.map(m=>`
-    <div class="card" style="padding:0;overflow:hidden">
-      <div style="padding:9px 12px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
-        <span style="font-size:11px;font-weight:700">${m.label}</span>
-        <span style="font-size:10px;color:var(--text3);font-family:'IBM Plex Mono'">${m.month}</span>
-      </div>
-      <table class="sc-table">
-        <thead><tr><th>Metric</th><th>Total</th><th>🟢</th><th>🟡</th><th>🔴</th></tr></thead>
-        <tbody id="scTbody${m.id}">${renderScorecardTable(scorecardForMonth(m.month,''))}</tbody>
-      </table>
-    </div>`).join('');
+  renderScorecardCards();
 
   // Theme bars
   const TS = RAW.theme_summary;
@@ -654,21 +913,25 @@ function initOverview(){
   const doOpts=(d)=>({type:'doughnut',data:{labels:['Green','Yellow','Red'],datasets:[{data:d,backgroundColor:[G,Y,R],borderWidth:0}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{color:'#7b8499',font:{size:9,family:'IBM Plex Mono'},boxWidth:8,padding:5}}}}});
 
-  // Destroy existing charts before recreating
-  ['cplDonut','roasDonut'].forEach(id => {
-    const existing = Chart.getChart(id);
-    if (existing) existing.destroy();
-  });
-
-  new Chart(document.getElementById('cplDonut'),doOpts([cplT.G,cplT.Y,cplT.R]));
-  new Chart(document.getElementById('roasDonut'),doOpts([roasT.G,roasT.Y,roasT.R]));
+  // Donut charts removed from UI — skip if elements not present
+  const cplEl = document.getElementById('cplDonut');
+  const roasEl = document.getElementById('roasDonut');
+  if (cplEl) {
+    const ex = Chart.getChart('cplDonut'); if (ex) ex.destroy();
+    new Chart(cplEl, doOpts([cplT.G,cplT.Y,cplT.R]));
+  }
+  if (roasEl) {
+    const ex = Chart.getChart('roasDonut'); if (ex) ex.destroy();
+    new Chart(roasEl, doOpts([roasT.G,roasT.Y,roasT.R]));
+  }
 }
 
 // ── TABLE STATES ──
-const allS={q:'',actions:new Set(),themes:new Set(['Date Hook','Problem Statement','Generic','Social Proof','AI Creative']),status:'',sort:'health_score',dir:-1,p:1};
-const cplS={q:'',cpl_tag:'',_paused:'',status:'',themes:new Set(),sort:'age',dir:-1,p:1};
-const d3S={q:'',d3f:'',d7f:'',status:'',themes:new Set(),sort:'age',dir:-1,p:1};
-const roS={q:'',roas_tag:'',status:'',themes:new Set(),sort:'age',dir:-1,p:1};
+const allS={q:'',actions:new Set(),themes:new Set(),status:'active',month:'',sort:'health_score',dir:-1,p:1,notesOnly:false};
+const cplS={q:'',cpl_tag:'',_paused:'',status:'active',themes:new Set(),month:'',sort:'age',dir:-1,p:1,notesOnly:false};
+const d3S={q:'',d3f:'',d7f:'',status:'active',themes:new Set(),month:'',sort:'age',dir:-1,p:1,notesOnly:false};
+const roS={q:'',roas_tag:'',status:'active',themes:new Set(),month:'',sort:'age',dir:-1,p:1,notesOnly:false};
+const scS={q:'',status:'active',themes:new Set(),sort:'age',dir:-1,p:1,notesOnly:false};
 
 function toggleF(state,val,key,btn,render){
   state[key]=state[key]===val?'':val; state.p=1;
@@ -696,8 +959,8 @@ const ALL_ACTIONS = ['Scale + Relaunch','Scale','Watch','Wind Down','Maturing','
 const ACTION_ICONS = {'Scale + Relaunch':'🚀','Scale':'⬆','Watch':'👁','Wind Down':'🌅','Maturing':'⏳','Pause':'⏸','Drop Angle':'🔴','Too Early':'⏳','Historical':'📁'};
 
 function updateActionMenuOptions(){
-  const isDH = allS.themes.size > 0 && allS.themes.size < 5 && [...allS.themes].every(t => t === 'Date Hook');
-  const isEV = allS.themes.size > 0 && allS.themes.size < 5 && ![...allS.themes].includes('Date Hook');
+  const isDH = allS.themes.size > 0 && [...allS.themes].every(t => t === 'Date Hook');
+  const isEV = allS.themes.size > 0 && ![...allS.themes].includes('Date Hook');
   const actions = isDH ? DH_ACTIONS : isEV ? EV_ACTIONS : ALL_ACTIONS;
   const menu = document.getElementById('allActionMenu');
   if(!menu) return;
@@ -706,14 +969,7 @@ function updateActionMenuOptions(){
   ).join('');
 }
 
-function updateAllThemeLbl(){
-  const lbl = document.getElementById('allThemeLbl');
-  const btn = document.getElementById('allThemeBtn');
-  if(!lbl||!btn) return;
-  if(allS.themes.size===0||allS.themes.size===5){ lbl.textContent='All'; btn.classList.remove('has-sel'); }
-  else if(allS.themes.size===1){ lbl.textContent=[...allS.themes][0].split(' ')[0]; btn.classList.add('has-sel'); }
-  else { lbl.textContent=allS.themes.size+' selected'; btn.classList.add('has-sel'); }
-}
+function updateAllThemeLbl(){ updateThemeLbl('all'); }
 
 function toggleActionDd(val, item){
   event.stopPropagation();
@@ -744,11 +1000,13 @@ function toggleStatus(val, btn){
 
 function getAll(){
   let r=[...C];
-  if(allS.q) r=r.filter(c=>c.key.toLowerCase().includes(allS.q.toLowerCase()));
+  if(allS.q) r=r.filter(c=>matchesSearch(c,allS.q));
   if(allS.actions.size>0) r=r.filter(c=>allS.actions.has(c.action));
-  if(allS.themes.size>0&&allS.themes.size<5) r=r.filter(c=>allS.themes.has(c.theme));
+  if(allS.themes.size>0) r=r.filter(c=>allS.themes.has(c.theme));
   if(allS.status==='active') r=r.filter(c=>!c.paused_from);
   if(allS.status==='paused') r=r.filter(c=>!!c.paused_from);
+  if(allS.notesOnly){ const n=getNotes(); r=r.filter(c=>n[c.key]&&n[c.key].text); }
+  r=applyMonthFilter(r,allS);
   r.sort((a,b)=>{const av=a[allS.sort]??'',bv=b[allS.sort]??'';return typeof av==='string'?allS.dir*av.localeCompare(bv):allS.dir*((av||0)-(bv||0));});
   return r;
 }
@@ -764,16 +1022,20 @@ function renderAll(){
     <td>${scorePill(c.health_score)}</td>
     <td style="display:flex;align-items:center;gap:4px;padding-top:10px">${confH(c.confidence)}</td>
     <td>${actionH(c.action)}</td>
-    <td>${tagH(c.cpl_tag)}</td>
     <td class="nr" style="color:var(--text);font-weight:600">${c.cpl_val!=null?'₹'+c.cpl_val:'—'}</td>
+    <td>${tagH(c.cpl_tag)}</td>
     <td>${tagH(c.cost_d3_tag)}</td>
     <td>${tagH(c.cost_d7_tag)}</td>
     <td>${tagH(c.roas_tag)}</td>
     <td class="nr">${spendH(c.total_spend)}</td>
-  </tr>`).join('')||`<tr><td colspan="12" class="empty">No creatives match</td></tr>`;
+    <td style="text-align:center">${noteBtn(c.key)}</td>
+  </tr>`).join('')||`<tr><td colspan="13" class="empty">No creatives match</td></tr>`;
   pag('allPag',s,pages,renderAll);
 }
 function sortA(col){if(allS.sort===col)allS.dir*=-1;else{allS.sort=col;allS.dir=-1;}allS.p=1;renderAll();}
+
+const STATE_MAP = () => ({allS, cplS, d3S, roS});
+const RENDER_MAP = () => ({renderAll, renderCpl, renderD3, renderRo});
 
 function showTT(e, label, idsHtml){
   const tt = document.getElementById('global-tt');
@@ -789,7 +1051,128 @@ function hideTT(){
   document.getElementById('global-tt').style.display = 'none';
 }
 document.addEventListener('scroll', hideTT, true);
+
+// ── SEARCH AUTOCOMPLETE ──
+function matchesSearch(c, q) {
+  if (!q) return true;
+  const ql = q.toLowerCase();
+  if (c.key.toLowerCase().includes(ql)) return true;
+  if ((c.utm_ids||[]).some(id => id.includes(ql))) return true;
+  return false;
+}
+
+function highlight(text, q) {
+  if (!q) return text;
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx < 0) return text;
+  return text.slice(0,idx) + `<span class="ss-match">${text.slice(idx,idx+q.length)}</span>` + text.slice(idx+q.length);
+}
+
+function showSuggestions(inputId, sugId, q, tab) {
+  const sug = document.getElementById(sugId);
+  if (!sug) return;
+  if (!q || q.length < 1) { sug.classList.remove('open'); return; }
+  const ql = q.toLowerCase();
+  // Find matches: name match first, then ID match
+  const nameMatches = C.filter(c => c.key.toLowerCase().includes(ql)).slice(0,6);
+  const idMatches = C.filter(c => !(c.key.toLowerCase().includes(ql)) && (c.utm_ids||[]).some(id=>id.includes(ql))).slice(0,4);
+  const results = [...nameMatches, ...idMatches].slice(0,8);
+  if (results.length === 0) { sug.classList.remove('open'); return; }
+  sug.innerHTML = results.map((c,i) => {
+    const matchedId = (c.utm_ids||[]).find(id=>id.includes(ql));
+    const byId = !c.key.toLowerCase().includes(ql) && matchedId;
+    return `<div class="ss-item" data-key="${c.key.replace(/"/g,'&quot;')}" data-tab="${tab}" onmousedown="pickSuggestion('${c.key.replace(/'/g,"\\'")}','${inputId}','${sugId}','${tab}')">
+      <div class="ss-name">${highlight(c.key, q)}</div>
+      <div class="ss-meta">${c.theme} · go-live ${c.go_live}${byId?` <span class="ss-id-badge">${matchedId}</span>`:(c.utm_ids&&c.utm_ids.length?` <span class="ss-id-badge">${c.utm_ids[0]}</span>`:'')}</div>
+    </div>`;
+  }).join('');
+  sug.classList.add('open');
+}
+
+function pickSuggestion(key, inputId, sugId, tab) {
+  const inp = document.getElementById(inputId);
+  const sug = document.getElementById(sugId);
+  if (inp) inp.value = key;
+  if (sug) sug.classList.remove('open');
+  // Set state and render
+  const stateRenderMap = {
+    all:    [allS,  renderAll],
+    cpl:    [cplS,  renderCpl],
+    d3d7:   [d3S,   renderD3],
+    roas:   [roS,   renderRo],
+    scaled: [scS,   renderScaled],
+  };
+  const [state, render] = stateRenderMap[tab] || [];
+  if (state) { state.q = key; state.p = 1; render(); }
+  // Open popup directly
+  setTimeout(() => openPopup(key), 100);
+}
+
+function navSuggestions(e, sugId, tab) {
+  const sug = document.getElementById(sugId);
+  if (!sug || !sug.classList.contains('open')) return;
+  const items = sug.querySelectorAll('.ss-item');
+  const focused = sug.querySelector('.ss-item.focused');
+  let idx = [...items].indexOf(focused);
+  if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(idx+1, items.length-1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); idx = Math.max(idx-1, 0); }
+  else if (e.key === 'Enter' && focused) { e.preventDefault(); focused.dispatchEvent(new MouseEvent('mousedown')); return; }
+  else if (e.key === 'Escape') { sug.classList.remove('open'); return; }
+  else return;
+  items.forEach(it => it.classList.remove('focused'));
+  if (items[idx]) items[idx].classList.add('focused');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) {
+    document.querySelectorAll('.search-suggestions').forEach(s => s.classList.remove('open'));
+  }
+});
 const scSelectedThemes = new Set(['Date Hook','Problem Statement','Generic','Social Proof','AI Creative']);
+let scCardOffset = 0; // 0 = newest 3 months; positive = shifted older
+
+function getAllScorecardMonths() {
+  // All unique YYYY-MM from go_live dates + current calendar month, sorted newest first
+  const curMonth = new Date().toISOString().slice(0,7);
+  return [...new Set([curMonth, ...C.map(c => c.go_live.slice(0,7))])].sort().reverse();
+}
+
+function shiftScorecard(dir) {
+  const allMonths = getAllScorecardMonths();
+  const maxOffset = Math.max(0, allMonths.length - 3);
+  scCardOffset = Math.max(0, Math.min(scCardOffset + dir, maxOffset));
+  renderScorecardCards();
+}
+
+function renderScorecardCards() {
+  const allMonths = getAllScorecardMonths();
+  const maxOffset = Math.max(0, allMonths.length - 3);
+  const visible = allMonths.slice(scCardOffset, scCardOffset + 3);
+
+  // Build label: index 0 = "Current", else "Month -N" relative to newest
+  const labels = visible.map(m => {
+    const [y, mo] = m.split('-');
+    return new Date(+y, +mo-1, 1).toLocaleDateString('en-IN', {month:'long', year:'numeric'});
+  });
+
+  document.getElementById('scorecardGrid').innerHTML = visible.map((month, i) => `
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:9px 12px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+        <span style="font-size:11px;font-weight:700">${labels[i]}</span>
+        <span style="font-size:10px;color:var(--text3);font-family:'IBM Plex Mono'">${month}</span>
+      </div>
+      <table class="sc-table">
+        <thead><tr><th>Metric</th><th>Total</th><th>🟢</th><th>🟡</th><th>🔴</th></tr></thead>
+        <tbody id="scTbodyDyn${i}">${renderScorecardTable(scorecardForMonth(month, scSelectedThemes), month)}</tbody>
+      </table>
+    </div>`).join('');
+
+  // Update nav button states
+  const lBtn = document.getElementById('scNavLeft');
+  const rBtn = document.getElementById('scNavRight');
+  if (lBtn) { const dis = scCardOffset === 0; lBtn.style.opacity = dis ? '0.25' : '1'; lBtn.style.cursor = dis ? 'default' : 'pointer'; lBtn.disabled = dis; lBtn.style.display = allMonths.length <= 3 ? 'none' : 'flex'; }
+  if (rBtn) { const dis = scCardOffset >= maxOffset; rBtn.style.opacity = dis ? '0.25' : '1'; rBtn.style.cursor = dis ? 'default' : 'pointer'; rBtn.disabled = dis; rBtn.style.display = allMonths.length <= 3 ? 'none' : 'flex'; }
+}
 
 function scGlobalPick(theme, item) {
   event.stopPropagation();
@@ -829,16 +1212,7 @@ function scGlobalPick(theme, item) {
   else if (scSelectedThemes.size === 1) { lbl.textContent = [...scSelectedThemes][0].split(' ')[0]; btn.classList.add('has-sel'); }
   else { lbl.textContent = scSelectedThemes.size + ' selected'; btn.classList.add('has-sel'); }
 
-  // Update all 3 scorecard tables
-  const months = [
-    {month: RAW.scorecard.cur_month, id:'sc0'},
-    {month: RAW.scorecard.prev1_month, id:'sc1'},
-    {month: RAW.scorecard.prev2_month, id:'sc2'},
-  ];
-  months.forEach(m => {
-    const theme = scSelectedThemes.size === 0 ? null : [...scSelectedThemes];
-    updateScorecard(m.month, 'scTbody'+m.id, scSelectedThemes.size === 0 ? '' : [...scSelectedThemes]);
-  });
+  renderScorecardCards();
 }
 
 document.addEventListener('click', e => {
@@ -854,10 +1228,10 @@ function toggleDD(menuId, btnId){
   if(!isOpen) menu.classList.add('open');
 }
 
-const TAB_STATE_MAP = {cpl:cplS, d3:d3S, ro:roS};
-const TAB_RENDER_MAP = {cpl:()=>renderCpl(), d3:()=>renderD3(), ro:()=>renderRo()};
-const TAB_LBL_MAP = {cpl:'cplThemeLbl', d3:'d3ThemeLbl', ro:'roThemeLbl'};
-const TAB_BTN_MAP = {cpl:'cplThemeBtn', d3:'d3ThemeBtn', ro:'roThemeBtn'};
+const TAB_STATE_MAP = {all:allS, cpl:cplS, d3:d3S, ro:roS, sc:scS};
+const TAB_RENDER_MAP = {all:()=>renderAll(), cpl:()=>renderCpl(), d3:()=>renderD3(), ro:()=>renderRo(), sc:()=>renderScaled()};
+const TAB_LBL_MAP = {all:'allThemeLbl', cpl:'cplThemeLbl', d3:'d3ThemeLbl', ro:'roThemeLbl', sc:'scThemeLbl'};
+const TAB_BTN_MAP = {all:'allThemeBtn', cpl:'cplThemeBtn', d3:'d3ThemeBtn', ro:'roThemeBtn', sc:'scThemeBtn'};
 
 function toggleTabTheme(tab, val, item){
   event.stopPropagation(); // keep dropdown open
@@ -866,6 +1240,7 @@ function toggleTabTheme(tab, val, item){
   if(state.themes.has(val)){ state.themes.delete(val); cb.checked=false; item.classList.remove('checked'); }
   else { state.themes.add(val); cb.checked=true; item.classList.add('checked'); }
   state.p=1;
+  if(tab==='all'){ allS.actions.clear(); updateActionMenuOptions(); updateAllActionLbl(); }
   updateThemeLbl(tab);
   TAB_RENDER_MAP[tab]();
 }
@@ -880,6 +1255,65 @@ function updateThemeLbl(tab){
   else { lbl.textContent=state.themes.size+' selected'; btn.classList.add('has-sel'); }
 }
 
+function populateMonthBtns() {
+  const months = [...new Set(C.map(c => c.go_live.slice(0,7)))].sort().reverse();
+
+  const TABS = [
+    {menu:'allMonthMenu', btn:'allMonthBtn', lbl:'allMonthLbl', state:allS, render:'renderAll'},
+    {menu:'cplMonthMenu', btn:'cplMonthBtn', lbl:'cplMonthLbl', state:cplS, render:'renderCpl'},
+    {menu:'d3MonthMenu',  btn:'d3MonthBtn',  lbl:'d3MonthLbl',  state:d3S,  render:'renderD3'},
+    {menu:'roMonthMenu',  btn:'roMonthBtn',  lbl:'roMonthLbl',  state:roS,  render:'renderRo'},
+  ];
+
+  TABS.forEach(t => {
+    const menu = document.getElementById(t.menu);
+    if (!menu) return;
+    const cur = t.state.month || '';
+    menu.innerHTML = [
+      {val:'',    label:'All'},
+      {val:'7d',  label:'Last 7 days'},
+      {val:'14d', label:'Last 14 days'},
+      ...months.map(m => ({val:m, label:m}))
+    ].map(opt => `
+      <div class="theme-dd-item" onclick="pickMonth('${t.menu}','${t.btn}','${t.lbl}','${t.state===allS?'allS':t.state===cplS?'cplS':t.state===d3S?'d3S':'roS'}','${opt.val}','${t.render}',this)">
+        <span style="width:14px;display:inline-block;color:var(--blue)">${cur===opt.val?'✓':''}</span>${opt.label}
+      </div>`).join('');
+  });
+}
+
+
+function pickMonth(menuId, btnId, lblId, stateKey, val, renderKey, item) {
+  event.stopPropagation();
+  const state = STATE_MAP()[stateKey];
+  const render = RENDER_MAP()[renderKey];
+  state.month = val;
+  state.p = 1;
+  const lbl = document.getElementById(lblId);
+  const btn = document.getElementById(btnId);
+  if (val === '')    { lbl.textContent='All';     btn.classList.remove('has-sel'); }
+  else if (val==='7d')  { lbl.textContent='7 days';  btn.classList.add('has-sel'); }
+  else if (val==='14d') { lbl.textContent='14 days'; btn.classList.add('has-sel'); }
+  else               { lbl.textContent=val;       btn.classList.add('has-sel'); }
+  // Refresh checkmarks
+  document.getElementById(menuId).querySelectorAll('.theme-dd-item span:first-child').forEach(s=>s.textContent='');
+  item.querySelector('span:first-child').textContent='✓';
+  document.getElementById(menuId).classList.remove('open');
+  render();
+}
+
+function applyMonthFilter(r, state) {
+  if (!state.month) return r;
+  if (state.month === '7d') {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-7);
+    return r.filter(c => new Date(c.go_live) >= cutoff);
+  }
+  if (state.month === '14d') {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-14);
+    return r.filter(c => new Date(c.go_live) >= cutoff);
+  }
+  return r.filter(c => c.go_live.startsWith(state.month));
+}
+
 function toggleTabStatus(state, val, activeId, pausedId, render){
   state.status = state.status===val ? '' : val;
   state.p=1;
@@ -890,11 +1324,13 @@ function toggleTabStatus(state, val, activeId, pausedId, render){
 
 function getCpl(){
   let r=[...C];
-  if(cplS.q) r=r.filter(c=>c.key.toLowerCase().includes(cplS.q.toLowerCase()));
+  if(cplS.q) r=r.filter(c=>matchesSearch(c,cplS.q));
   if(cplS.cpl_tag) r=r.filter(c=>c.cpl_tag===cplS.cpl_tag);
   if(cplS.status==='active') r=r.filter(c=>!c.paused_from);
   if(cplS.status==='paused') r=r.filter(c=>!!c.paused_from);
+  if(cplS.notesOnly){ const n=getNotes(); r=r.filter(c=>n[c.key]&&n[c.key].text); }
   if(cplS.themes.size>0) r=r.filter(c=>cplS.themes.has(c.theme));
+  r=applyMonthFilter(r,cplS);
   r.sort((a,b)=>{const av=a[cplS.sort]??'',bv=b[cplS.sort]??'';return typeof av==='string'?cplS.dir*av.localeCompare(bv):cplS.dir*((av||0)-(bv||0));});
   return r;
 }
@@ -903,10 +1339,10 @@ function renderCpl(){
   const pages=Math.max(1,Math.ceil(rows.length/PS));s.p=Math.min(s.p,pages);
   document.getElementById('cpl-cnt').textContent=rows.length+' creatives';
   document.getElementById('cplBody').innerHTML=rows.slice((s.p-1)*PS,s.p*PS).map(c=>`<tr>
+    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
     <td class="nm">${nameCell(c)}</td>
     <td>${themeH(c.theme,c.theme==='Date Hook')}</td>
     <td>${c.age}d</td>
-    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
     <td class="nr" style="color:var(--text);font-weight:600">${c.cpl_val!=null?'₹'+c.cpl_val:'—'}</td>
     <td>${tagH(c.cpl_tag)}</td>
     <td>${tagH(c.cost_d3_tag)}</td>
@@ -914,19 +1350,22 @@ function renderCpl(){
     <td>${tagH(c.roas_tag)}</td>
     <td class="nr">${spendH(c.total_spend)}</td>
     <td class="nr">${c.total_leads.toLocaleString('en-IN')}</td>
-  </tr>`).join('')||`<tr><td colspan="12" class="empty">No match</td></tr>`;
+    <td style="text-align:center">${noteBtn(c.key)}</td>
+  </tr>`).join('')||`<tr><td colspan="13" class="empty">No match</td></tr>`;
   pag('cplPag',s,pages,renderCpl);
 }
 function sortC(col){if(cplS.sort===col)cplS.dir*=-1;else{cplS.sort=col;cplS.dir=-1;}cplS.p=1;renderCpl();}
 
 function getD3(){
   let r=C.filter(c=>c.cost_d3_tag!=='Not Eligible Yet');
-  if(d3S.q) r=r.filter(c=>c.key.toLowerCase().includes(d3S.q.toLowerCase()));
+  if(d3S.q) r=r.filter(c=>matchesSearch(c,d3S.q));
   if(d3S.d3f) r=r.filter(c=>c.cost_d3_tag===d3S.d3f);
   if(d3S.d7f) r=r.filter(c=>c.cost_d7_tag===d3S.d7f);
   if(d3S.status==='active') r=r.filter(c=>!c.paused_from);
   if(d3S.status==='paused') r=r.filter(c=>!!c.paused_from);
+  if(d3S.notesOnly){ const n=getNotes(); r=r.filter(c=>n[c.key]&&n[c.key].text); }
   if(d3S.themes.size>0) r=r.filter(c=>d3S.themes.has(c.theme));
+  r=applyMonthFilter(r,d3S);
   r.sort((a,b)=>d3S.dir*((a[d3S.sort]||0)-(b[d3S.sort]||0)));
   return r;
 }
@@ -935,10 +1374,10 @@ function renderD3(){
   const pages=Math.max(1,Math.ceil(rows.length/PS));s.p=Math.min(s.p,pages);
   document.getElementById('d3-cnt').textContent=rows.length+' creatives';
   document.getElementById('d3Body').innerHTML=rows.slice((s.p-1)*PS,s.p*PS).map(c=>`<tr>
+    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
     <td class="nm">${nameCell(c)}</td>
     <td>${themeH(c.theme,c.theme==='Date Hook')}</td>
     <td>${c.age}d</td>
-    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
     <td>${tagH(c.cpl_tag)}</td>
     <td class="nr">${c.cost_d3_val!=null?'₹'+c.cost_d3_val:'—'}</td>
     <td>${tagH(c.cost_d3_tag)}</td>
@@ -946,18 +1385,21 @@ function renderD3(){
     <td>${tagH(c.cost_d7_tag)}</td>
     <td>${tagH(c.roas_tag)}</td>
     <td class="nr">${spendH(c.total_spend)}</td>
-  </tr>`).join('')||`<tr><td colspan="11" class="empty">No match</td></tr>`;
+    <td style="text-align:center">${noteBtn(c.key)}</td>
+  </tr>`).join('')||`<tr><td colspan="12" class="empty">No match</td></tr>`;
   pag('d3Pag',s,pages,renderD3);
 }
 function sortD(col){if(d3S.sort===col)d3S.dir*=-1;else{d3S.sort=col;d3S.dir=-1;}d3S.p=1;renderD3();}
 
 function getRo(){
   let r=C.filter(c=>c.roas_tag!=='Not Eligible Yet');
-  if(roS.q) r=r.filter(c=>c.key.toLowerCase().includes(roS.q.toLowerCase()));
+  if(roS.q) r=r.filter(c=>matchesSearch(c,roS.q));
   if(roS.roas_tag) r=r.filter(c=>c.roas_tag===roS.roas_tag);
   if(roS.status==='active') r=r.filter(c=>!c.paused_from);
   if(roS.status==='paused') r=r.filter(c=>!!c.paused_from);
+  if(roS.notesOnly){ const n=getNotes(); r=r.filter(c=>n[c.key]&&n[c.key].text); }
   if(roS.themes.size>0) r=r.filter(c=>roS.themes.has(c.theme));
+  r=applyMonthFilter(r,roS);
   r.sort((a,b)=>{const av=a[roS.sort]??'',bv=b[roS.sort]??'';return typeof av==='string'?roS.dir*av.localeCompare(bv):roS.dir*((av||0)-(bv||0));});
   return r;
 }
@@ -966,20 +1408,60 @@ function renderRo(){
   const pages=Math.max(1,Math.ceil(rows.length/PS));s.p=Math.min(s.p,pages);
   document.getElementById('ro-cnt').textContent=rows.length+' creatives';
   document.getElementById('roBody').innerHTML=rows.slice((s.p-1)*PS,s.p*PS).map(c=>`<tr>
+    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
     <td class="nm">${nameCell(c)}</td>
     <td>${themeH(c.theme,c.theme==='Date Hook')}</td>
     <td>${c.age}d</td>
-    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
     <td>${scorePill(c.health_score)}</td>
     <td style="display:flex;align-items:center;gap:4px;padding-top:10px">${confH(c.confidence)}</td>
     <td>${tagH(c.cpl_tag)}</td><td>${tagH(c.cost_d3_tag)}</td><td>${tagH(c.cost_d7_tag)}</td>
     <td class="nr" style="color:var(--text);font-weight:600">${c.roas_val!=null?c.roas_val+'×':'—'}</td>
     <td>${tagH(c.roas_tag)}</td>
     <td class="nr">${spendH(c.total_spend)}</td>
-  </tr>`).join('')||`<tr><td colspan="12" class="empty">No match</td></tr>`;
+    <td style="text-align:center">${noteBtn(c.key)}</td>
+  </tr>`).join('')||`<tr><td colspan="13" class="empty">No match</td></tr>`;
   pag('roPag',s,pages,renderRo);
 }
 function sortR(col){if(roS.sort===col)roS.dir*=-1;else{roS.sort=col;roS.dir=-1;}roS.p=1;renderRo();}
+
+// ── SCALED TAB ──
+function getScaled(){
+  let r=C.filter(c=>c.active_days>28);
+  if(scS.q) r=r.filter(c=>matchesSearch(c,scS.q));
+  if(scS.status==='active') r=r.filter(c=>!c.paused_from);
+  if(scS.status==='paused') r=r.filter(c=>!!c.paused_from);
+  if(scS.themes.size>0) r=r.filter(c=>scS.themes.has(c.theme));
+  if(scS.notesOnly){ const n=getNotes(); r=r.filter(c=>n[c.key]&&n[c.key].text); }
+  r.sort((a,b)=>{const av=a[scS.sort]??'',bv=b[scS.sort]??'';return typeof av==='string'?scS.dir*av.localeCompare(bv):scS.dir*((av||0)-(bv||0));});
+  return r;
+}
+function renderScaled(){
+  const rows=getScaled();const s=scS;
+  const pages=Math.max(1,Math.ceil(rows.length/PS));s.p=Math.min(s.p,pages);
+  document.getElementById('sc-cnt').textContent=rows.length+' creatives';
+  document.getElementById('scBody').innerHTML=rows.slice((s.p-1)*PS,s.p*PS).map(c=>`<tr>
+    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
+    <td class="nm">${nameCell(c)}</td>
+    <td>${themeH(c.theme,c.theme==='Date Hook')}</td>
+    <td style="font-family:'IBM Plex Mono'">${c.active_days}d <span style="color:var(--text3);font-size:10px">(${c.age}d cal)</span></td>
+    <td style="font-family:'IBM Plex Mono';color:var(--blue)">${c.active_days-28}d</td>
+    <td class="nr" style="color:var(--text);font-weight:600">${c.sc_cpl_val!=null?'₹'+c.sc_cpl_val:'—'}</td>
+    <td>${tagH(c.sc_cpl_tag)}</td>
+    <td class="nr">${c.sc_d3_val!=null?'₹'+c.sc_d3_val:'—'}</td>
+    <td>${tagH(c.sc_d3_tag)}</td>
+    <td class="nr">${c.sc_d7_val!=null?'₹'+c.sc_d7_val:'—'}</td>
+    <td>${tagH(c.sc_d7_tag)}</td>
+    <td class="nr">${c.sc_roas_val!=null?c.sc_roas_val+'×':'—'}</td>
+    <td>${tagH(c.sc_roas_tag)}</td>
+    <td class="nr" style="font-weight:700;color:${c.sc_health_score>=67?'var(--green)':c.sc_health_score>=34?'var(--yellow)':'var(--red)'}">${c.sc_health_score!=null?c.sc_health_score:'—'}</td>
+    <td class="nr">${spendH(c.total_spend)}</td>
+    <td class="nr">${c.total_leads.toLocaleString('en-IN')}</td>
+    <td style="text-align:center">${noteBtn(c.key)}</td>
+  </tr>`).join('')||`<tr><td colspan="17" class="empty">No creatives with age &gt; 28 days</td></tr>`;
+  pag('scPag',s,pages,renderScaled);
+}
+function sortSc(col){if(scS.sort===col)scS.dir*=-1;else{scS.sort=col;scS.dir=-1;}scS.p=1;renderScaled();}
+function sscPage(p){scS.p=p;renderScaled();}
 
 function pag(id,s,pages,cb){
   const total = id==='allPag'?getAll().length:id==='cplPag'?getCpl().length:id==='d3Pag'?getD3().length:getRo().length;
@@ -996,13 +1478,14 @@ function srPage(p){roS.p=p;renderRo();}
 
 // ── TABS ──
 function switchTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['overview','all','cpl','d3d7','roas'][i]===name));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['overview','all','cpl','d3d7','roas','scaled'][i]===name));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
-  if(name==='all'){renderAll();}
+  if(name==='all') renderAll();
   if(name==='cpl') renderCpl();
   if(name==='d3d7') renderD3();
   if(name==='roas') renderRo();
+  if(name==='scaled') renderScaled();
 }
 
 // ── CREATIVE POPUP ──
@@ -1011,36 +1494,72 @@ function openPopup(key) {
   if (!c) return;
   document.getElementById('popupTitle').textContent = c.key;
   document.getElementById('popupSub').textContent =
-    `${c.theme} · ${c.go_live} · Age ${c.age}d · ${c.paused_from ? '⏸ Paused '+c.paused_from : '● Active'} · ${c.confidence} confidence`;
+    `${c.theme} · ${c.go_live} · ${c.active_days}d active (${c.age}d calendar) · ${c.paused_from ? '⏸ Paused '+c.paused_from : '● Active'} · ${c.confidence} confidence`;
 
   const daily = DAILY_DATA[key] ? [...DAILY_DATA[key]].sort((a,b)=>a.date.localeCompare(b.date)) : [];
   const hasDailyData = daily.length > 0;
 
   const tagColor = t => t==='Green'?'var(--green)':t==='Yellow'?'var(--yellow)':t==='Red'?'var(--red)':'var(--text3)';
 
+  const metricCard = (label, val, tag, tooltip='') => `
+    <div class="pm-card" ${tooltip?`title="${tooltip}"`:''}  style="cursor:default">
+      <div class="pm-label">${label}</div>
+      <div class="pm-val" style="color:${tagColor(tag)}">${val}</div>
+      <div class="pm-sub">${tag==='Not Eligible Yet'?'Not Eligible':tag}</div>
+    </div>`;
+
+  const isScaled = c.active_days > 28;
+
+  // Compute actual testing windows from calendar age (mirrors processCSV logic)
+  const _cplW  = 21;
+  const _d3W   = c.age < 14 ? null : c.age <= 20 ? 7 : c.age <= 27 ? 14 : 21;
+  const _d7W   = c.age < 21 ? null : c.age <= 27 ? 7 : c.age <= 34 ? 14 : 21;
+  const _roasW = c.age < 28 ? null : c.age <= 34 ? 7 : c.age <= 41 ? 14 : 21;
+  const _testWin = Math.max(_cplW, _d3W||0, _d7W||0, _roasW||0);
+
   document.getElementById('popupBody').innerHTML = `
-    <div class="popup-metrics">
-      <div class="pm-card">
-        <div class="pm-label">CPL</div>
-        <div class="pm-val" style="color:${tagColor(c.cpl_tag)}">${c.cpl_val!=null?'₹'+c.cpl_val:'—'}</div>
-        <div class="pm-sub">${c.cpl_tag}</div>
+
+    ${isScaled ? `
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:18px">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span>🧪 Testing Window (first ${_testWin}d)</span>
+          ${c.health_score!=null?`<span style="font-size:13px;font-weight:800;color:${c.health_score>=67?'var(--green)':c.health_score>=34?'var(--yellow)':'var(--red)'}">Score: ${c.health_score}</span>`:''}
+        </div>
+        <div class="popup-metrics" style="margin-bottom:0">
+          ${metricCard('CPL', c.cpl_val!=null?'₹'+c.cpl_val:'—', c.cpl_tag, `Based on first 21 days from go-live`)}
+          ${metricCard('Cost D3', c.cost_d3_val!=null?'₹'+c.cost_d3_val:c.cost_d3_tag==='Not Eligible Yet'?'N/A':'—', c.cost_d3_tag, _d3W?`Based on first ${_d3W} days from go-live`:'')}
+          ${metricCard('Cost D7', c.cost_d7_val!=null?'₹'+c.cost_d7_val:c.cost_d7_tag==='Not Eligible Yet'?'N/A':'—', c.cost_d7_tag, _d7W?`Based on first ${_d7W} days from go-live`:'')}
+          ${metricCard('ROAS', c.roas_val!=null?c.roas_val+'×':c.roas_tag==='Not Eligible Yet'?'N/A':'—', c.roas_tag, _roasW?`Based on first ${_roasW} days from go-live`:'')}
+        </div>
       </div>
-      <div class="pm-card">
-        <div class="pm-label">Cost D3</div>
-        <div class="pm-val" style="color:${tagColor(c.cost_d3_tag)}">${c.cost_d3_val!=null?'₹'+c.cost_d3_val:c.cost_d3_tag==='Not Eligible Yet'?'N/A':'—'}</div>
-        <div class="pm-sub">${c.cost_d3_tag==='Not Eligible Yet'?'Not Eligible':c.cost_d3_tag}</div>
-      </div>
-      <div class="pm-card">
-        <div class="pm-label">Cost D7</div>
-        <div class="pm-val" style="color:${tagColor(c.cost_d7_tag)}">${c.cost_d7_val!=null?'₹'+c.cost_d7_val:c.cost_d7_tag==='Not Eligible Yet'?'N/A':'—'}</div>
-        <div class="pm-sub">${c.cost_d7_tag==='Not Eligible Yet'?'Not Eligible':c.cost_d7_tag}</div>
-      </div>
-      <div class="pm-card">
-        <div class="pm-label">ROAS</div>
-        <div class="pm-val" style="color:${tagColor(c.roas_tag)}">${c.roas_val!=null?c.roas_val+'×':c.roas_tag==='Not Eligible Yet'?'N/A':'—'}</div>
-        <div class="pm-sub">${c.roas_tag==='Not Eligible Yet'?'Not Eligible':c.roas_tag}</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bborder);display:flex;justify-content:space-between;align-items:center">
+          <span>⬆ Overall (All Time · ${c.active_days}d active)</span>
+          ${c.sc_health_score!=null?`<span style="font-size:13px;font-weight:800;color:${c.sc_health_score>=67?'var(--green)':c.sc_health_score>=34?'var(--yellow)':'var(--red)'}">Score: ${c.sc_health_score}</span>`:''}
+        </div>
+        <div class="popup-metrics" style="margin-bottom:0">
+          ${metricCard('CPL', c.sc_cpl_val!=null?'₹'+c.sc_cpl_val:'—', c.sc_cpl_tag, `Based on all ${c.active_days} active days`)}
+          ${metricCard('Cost D3', c.sc_d3_val!=null?'₹'+c.sc_d3_val:c.sc_d3_tag==='Not Eligible Yet'?'N/A':'—', c.sc_d3_tag, `Based on first ${Math.floor((c.active_days-7)/7)*7} days from go-live`)}
+          ${metricCard('Cost D7', c.sc_d7_val!=null?'₹'+c.sc_d7_val:c.sc_d7_tag==='Not Eligible Yet'?'N/A':'—', c.sc_d7_tag, `Based on first ${Math.floor((c.active_days-14)/7)*7} days from go-live`)}
+          ${metricCard('ROAS', c.sc_roas_val!=null?c.sc_roas_val+'×':c.sc_roas_tag==='Not Eligible Yet'?'N/A':'—', c.sc_roas_tag, c.sc_roas_tag!=='Not Eligible Yet'?`Based on first ${Math.floor((c.active_days-21)/7)*7} days from go-live (excl. recent 28d attribution lag)`:'')}
+        </div>
       </div>
     </div>
+    ` : `
+    <div style="margin-bottom:8px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span>🧪 Testing Window (first ${_testWin}d)</span>
+        ${c.health_score!=null?`<span style="font-size:13px;font-weight:800;color:${c.health_score>=67?'var(--green)':c.health_score>=34?'var(--yellow)':'var(--red)'}">Score: ${c.health_score}</span>`:''}
+      </div>
+      <div class="popup-metrics" style="margin-bottom:0">
+        ${metricCard('CPL', c.cpl_val!=null?'₹'+c.cpl_val:'—', c.cpl_tag, `Based on first 21 days from go-live`)}
+        ${metricCard('Cost D3', c.cost_d3_val!=null?'₹'+c.cost_d3_val:c.cost_d3_tag==='Not Eligible Yet'?'N/A':'—', c.cost_d3_tag, _d3W?`Based on first ${_d3W} days from go-live`:'')}
+        ${metricCard('Cost D7', c.cost_d7_val!=null?'₹'+c.cost_d7_val:c.cost_d7_tag==='Not Eligible Yet'?'N/A':'—', c.cost_d7_tag, _d7W?`Based on first ${_d7W} days from go-live`:'')}
+        ${metricCard('ROAS', c.roas_val!=null?c.roas_val+'×':c.roas_tag==='Not Eligible Yet'?'N/A':'—', c.roas_tag, _roasW?`Based on first ${_roasW} days from go-live`:'')}
+      </div>
+    </div>
+    `}
 
     ${hasDailyData ? `
     <div class="popup-charts">
@@ -1128,6 +1647,476 @@ function closePopup() {
 
 document.addEventListener('keydown', e => { if(e.key==='Escape') closePopup(); });
 
+// ── NOTES FILTER ──
+const NOTES_TAB_MAP = {all:{s:allS,btn:'allBtnNotes',render:()=>renderAll()},cpl:{s:cplS,btn:'cplBtnNotes',render:()=>renderCpl()},d3:{s:d3S,btn:'d3BtnNotes',render:()=>renderD3()},ro:{s:roS,btn:'roBtnNotes',render:()=>renderRo()},sc:{s:scS,btn:'scBtnNotes',render:()=>renderScaled()}};
+
+function toggleNotesFilter(tab) {
+  const cfg = NOTES_TAB_MAP[tab];
+  cfg.s.notesOnly = !cfg.s.notesOnly;
+  cfg.s.p = 1;
+  const btn = document.getElementById(cfg.btn);
+  btn.classList.toggle('active', cfg.s.notesOnly);
+  cfg.render();
+}
+
+// ── PROFILE ──
+function toggleProfileMenu(e) {
+  e.stopPropagation();
+  document.getElementById('profile-menu').classList.toggle('open');
+}
+function closeProfileMenu() {
+  document.getElementById('profile-menu').classList.remove('open');
+}
+document.addEventListener('click', () => closeProfileMenu());
+
+function doLogout() {
+  sessionStorage.removeItem('cd_auth');
+  location.reload();
+}
+
+// ── THRESHOLDS ──
+const DEFAULT_THR = {cplGreen:10, cplYellow:15, d3Green:33, d3Yellow:38, d7Green:66, d7Yellow:95, roasGreen:1.8, roasYellow:1.2};
+const THR_KEY = 'cd_thresholds_v1';
+
+function getThr() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(THR_KEY));
+    return saved ? {...DEFAULT_THR, ...saved} : {...DEFAULT_THR};
+  } catch { return {...DEFAULT_THR}; }
+}
+
+function openSettings() {
+  const t = getThr();
+  document.getElementById('s-cpl-green').value   = t.cplGreen;
+  document.getElementById('s-cpl-yellow').value  = t.cplYellow;
+  document.getElementById('s-d3-green').value    = t.d3Green;
+  document.getElementById('s-d3-yellow').value   = t.d3Yellow;
+  document.getElementById('s-d7-green').value    = t.d7Green;
+  document.getElementById('s-d7-yellow').value   = t.d7Yellow;
+  document.getElementById('s-roas-green').value  = t.roasGreen;
+  document.getElementById('s-roas-yellow').value = t.roasYellow;
+  document.getElementById('settings-modal').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+
+function saveSettings() {
+  const t = {
+    cplGreen:   parseFloat(document.getElementById('s-cpl-green').value),
+    cplYellow:  parseFloat(document.getElementById('s-cpl-yellow').value),
+    d3Green:    parseFloat(document.getElementById('s-d3-green').value),
+    d3Yellow:   parseFloat(document.getElementById('s-d3-yellow').value),
+    d7Green:    parseFloat(document.getElementById('s-d7-green').value),
+    d7Yellow:   parseFloat(document.getElementById('s-d7-yellow').value),
+    roasGreen:  parseFloat(document.getElementById('s-roas-green').value),
+    roasYellow: parseFloat(document.getElementById('s-roas-yellow').value),
+  };
+  localStorage.setItem(THR_KEY, JSON.stringify(t));
+  closeSettings();
+  // Reprocess data with new thresholds
+  if (Object.keys(DAILY_DATA).length > 0) {
+    const reprocessed = recomputeTags();
+    C.length = 0;
+    reprocessed.forEach(c => C.push(c));
+    RAW.creatives = reprocessed;
+  }
+  initOverview();
+  renderSupply();
+  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled();
+}
+
+function resetThresholds() {
+  localStorage.removeItem(THR_KEY);
+  const d = DEFAULT_THR;
+  document.getElementById('s-cpl-green').value   = d.cplGreen;
+  document.getElementById('s-cpl-yellow').value  = d.cplYellow;
+  document.getElementById('s-d3-green').value    = d.d3Green;
+  document.getElementById('s-d3-yellow').value   = d.d3Yellow;
+  document.getElementById('s-d7-green').value    = d.d7Green;
+  document.getElementById('s-d7-yellow').value   = d.d7Yellow;
+  document.getElementById('s-roas-green').value  = d.roasGreen;
+  document.getElementById('s-roas-yellow').value = d.roasYellow;
+}
+
+function recomputeTags() {
+  const t = getThr();
+  return RAW.creatives.map(c => {
+    const nc = {...c};
+    if (nc.cpl_val != null)
+      nc.cpl_tag = nc.cpl_val < t.cplGreen ? 'Green' : nc.cpl_val <= t.cplYellow ? 'Yellow' : 'Red';
+    if (nc.cost_d3_val != null)
+      nc.cost_d3_tag = nc.cost_d3_val < t.d3Green ? 'Green' : nc.cost_d3_val <= t.d3Yellow ? 'Yellow' : 'Red';
+    if (nc.cost_d7_val != null)
+      nc.cost_d7_tag = nc.cost_d7_val < t.d7Green ? 'Green' : nc.cost_d7_val <= t.d7Yellow ? 'Yellow' : 'Red';
+    if (nc.roas_val != null && nc.roas_tag !== 'Not Eligible Yet')
+      nc.roas_tag = nc.roas_val >= t.roasGreen ? 'Green' : nc.roas_val > t.roasYellow ? 'Yellow' : 'Red';
+    if (nc.sc_cpl_val != null)
+      nc.sc_cpl_tag = nc.sc_cpl_val < t.cplGreen ? 'Green' : nc.sc_cpl_val <= t.cplYellow ? 'Yellow' : 'Red';
+    if (nc.sc_d3_val != null)
+      nc.sc_d3_tag = nc.sc_d3_val < t.d3Green ? 'Green' : nc.sc_d3_val <= t.d3Yellow ? 'Yellow' : 'Red';
+    if (nc.sc_d7_val != null)
+      nc.sc_d7_tag = nc.sc_d7_val < t.d7Green ? 'Green' : nc.sc_d7_val <= t.d7Yellow ? 'Yellow' : 'Red';
+    if (nc.sc_roas_val != null && nc.sc_roas_tag !== 'Not Eligible Yet')
+      nc.sc_roas_tag = nc.sc_roas_val >= t.roasGreen ? 'Green' : nc.sc_roas_val > t.roasYellow ? 'Yellow' : 'Red';
+    // recompute sc_health_score
+    if (nc.active_days > 28) {
+      const ts2={Green:2,Yellow:1,Red:0};
+      const w=[];
+      if (nc.sc_cpl_tag in ts2)  w.push([ts2[nc.sc_cpl_tag],30]);
+      if (nc.sc_d3_tag  in ts2)  w.push([ts2[nc.sc_d3_tag], 25]);
+      if (nc.sc_d7_tag  in ts2)  w.push([ts2[nc.sc_d7_tag], 20]);
+      if (nc.sc_roas_tag in ts2) w.push([ts2[nc.sc_roas_tag],25]);
+      const tw=w.reduce((s,[,wt])=>s+wt,0);
+      nc.sc_health_score = tw>0 ? Math.round(w.reduce((s,[v,wt])=>s+v*wt,0)/tw*50) : null;
+    }
+    return nc;
+  });
+}
+
+document.addEventListener('click', e => {
+  if (e.target.id === 'settings-modal') closeSettings();
+});
+
+// ── NOTES ──
+const NOTES_KEY = 'cd_notes_v1';
+
+function getNotes() {
+  try { return JSON.parse(localStorage.getItem(NOTES_KEY) || '{}'); } catch { return {}; }
+}
+
+function noteBtn(creativeKey) {
+  const notes = getNotes();
+  const hasNote = !!(notes[creativeKey] && notes[creativeKey].text);
+  return `<button class="note-btn${hasNote ? ' has-note' : ''}" onclick="openNotes('${creativeKey.replace(/'/g,"\\'")}',event)" title="${hasNote ? 'Edit note' : 'Add note'}">📝</button>`;
+}
+
+let _currentNoteKey = null;
+
+function openNotes(creativeKey, e) {
+  e.stopPropagation();
+  _currentNoteKey = creativeKey;
+  const notes = getNotes();
+  const entry = notes[creativeKey] || {};
+  document.getElementById('notes-creative-label').textContent = creativeKey;
+  document.getElementById('notes-textarea').value = entry.text || '';
+  document.getElementById('notes-timestamp').textContent = entry.updatedAt ? `Last updated: ${entry.updatedAt}` : '';
+  document.getElementById('notes-modal').classList.add('open');
+  setTimeout(() => document.getElementById('notes-textarea').focus(), 50);
+}
+
+function closeNotes() {
+  document.getElementById('notes-modal').classList.remove('open');
+  _currentNoteKey = null;
+}
+
+function saveNote() {
+  if (!_currentNoteKey) return;
+  const text = document.getElementById('notes-textarea').value.trim();
+  const notes = getNotes();
+  if (text) {
+    notes[_currentNoteKey] = {
+      text,
+      updatedAt: new Date().toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    };
+  } else {
+    delete notes[_currentNoteKey];
+  }
+  localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+  closeNotes();
+  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled();
+}
+
+function clearNote() {
+  if (!_currentNoteKey) return;
+  const notes = getNotes();
+  delete notes[_currentNoteKey];
+  localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+  document.getElementById('notes-textarea').value = '';
+  document.getElementById('notes-timestamp').textContent = '';
+}
+
+// Close on backdrop click
+document.addEventListener('click', e => {
+  if (e.target.id === 'notes-modal') closeNotes();
+});
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeNotes();
+});
+
+// ── DOWNLOAD CSV ──
+function downloadCSV(tab) {
+  const configs = {
+    all: {
+      headers: ['Status','Creative','Theme','Age','Score','Confidence','Action','CPL Tag','CPL ₹','D3','D7','ROAS','Spend'],
+      getData: () => getAll(),
+      row: c => [
+        c.paused_from ? 'Paused' : 'Active',
+        c.key, c.theme, c.age,
+        c.health_score, c.confidence, c.action,
+        c.cpl_tag, c.cpl_val ?? '', c.cost_d3_tag, c.cost_d7_tag, c.roas_tag,
+        c.total_spend
+      ]
+    },
+    cpl: {
+      headers: ['Status','Creative','Theme','Age','CPL ₹','CPL Tag','D3','D7','ROAS','Spend','Leads'],
+      getData: () => getCpl(),
+      row: c => [
+        c.paused_from ? 'Paused' : 'Active',
+        c.key, c.theme, c.age,
+        c.cpl_val ?? '', c.cpl_tag, c.cost_d3_tag, c.cost_d7_tag, c.roas_tag,
+        c.total_spend, c.total_leads
+      ]
+    },
+    d3: {
+      headers: ['Status','Creative','Theme','Age','CPL','Cost D3 ₹','D3 Tag','Cost D7 ₹','D7 Tag','ROAS','Spend'],
+      getData: () => getD3(),
+      row: c => [
+        c.paused_from ? 'Paused' : 'Active',
+        c.key, c.theme, c.age,
+        c.cpl_tag, c.cost_d3_val ?? '', c.cost_d3_tag, c.cost_d7_val ?? '', c.cost_d7_tag,
+        c.roas_tag, c.total_spend
+      ]
+    },
+    ro: {
+      headers: ['Status','Creative','Theme','Age','Score','Confidence','CPL','D3','D7','ROAS','Tag','Spend'],
+      getData: () => getRo(),
+      row: c => [
+        c.paused_from ? 'Paused' : 'Active',
+        c.key, c.theme, c.age,
+        c.health_score, c.confidence, c.cpl_tag, c.cost_d3_tag, c.cost_d7_tag,
+        c.roas_val ?? '', c.roas_tag, c.total_spend
+      ]
+    },
+    sc: {
+      headers: ['Status','Creative','Theme','Active Days','Calendar Age','Days Past 28','CPL ₹','CPL Tag','D3 ₹','D3 Tag','D7 ₹','D7 Tag','ROAS','ROAS Tag','Spend','Leads'],
+      getData: () => getScaled(),
+      row: c => [
+        c.paused_from ? 'Paused' : 'Active',
+        c.key, c.theme, c.active_days, c.age, c.active_days-28,
+        c.sc_cpl_val ?? '', c.sc_cpl_tag,
+        c.sc_d3_val ?? '', c.sc_d3_tag,
+        c.sc_d7_val ?? '', c.sc_d7_tag,
+        c.sc_roas_val ?? '', c.sc_roas_tag,
+        c.total_spend, c.total_leads
+      ]
+    }
+  };
+
+  const cfg = configs[tab];
+  const rows = cfg.getData();
+  const csvLines = [cfg.headers.join(',')];
+  for (const c of rows) {
+    csvLines.push(cfg.row(c).map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+  }
+
+  const blob = new Blob([csvLines.join('\n')], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `creative_dashboard_${tab}_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── GOOGLE SHEETS LIVE SYNC ──
+const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTXEI-U9nQeZlMUrLyyHoiTUAJEtD36fnQOKMJ3kjRjLf_8F2mbFXyWf4pOOlVby_GY0JviXr41ZZP/pub?gid=0&single=true&output=csv';
+
+let supplyWindow = 7;
+let supplyCustomFrom = null, supplyCustomTo = null;
+
+function setSupplyWindow(d) {
+  supplyWindow = d;
+  supplyCustomFrom = null; supplyCustomTo = null;
+  ['7','14','30','Custom'].forEach(n => {
+    const btn = document.getElementById('supplyBtn'+n);
+    if (btn) { btn.style.background=''; btn.style.color=''; btn.style.borderColor=''; }
+  });
+  const active = document.getElementById('supplyBtn'+d);
+  if (active) { active.style.background='var(--gbg)'; active.style.color='var(--green)'; active.style.borderColor='var(--gborder)'; }
+  const cr = document.getElementById('supplyCustomRange');
+  if (cr) cr.style.display='none';
+  renderSupply();
+}
+
+function toggleSupplyCustom() {
+  const cr = document.getElementById('supplyCustomRange');
+  if (!cr) return;
+  const isOpen = cr.style.display !== 'none';
+  if (isOpen) {
+    cr.style.display = 'none';
+    setSupplyWindow(supplyWindow); // revert to last quick filter
+  } else {
+    cr.style.display = 'flex';
+    ['7','14','30'].forEach(n => {
+      const btn = document.getElementById('supplyBtn'+n);
+      if (btn) { btn.style.background=''; btn.style.color=''; btn.style.borderColor=''; }
+    });
+    const btn = document.getElementById('supplyBtnCustom');
+    if (btn) { btn.style.background='var(--gbg)'; btn.style.color='var(--green)'; btn.style.borderColor='var(--gborder)'; }
+    // pre-fill to/from with sensible defaults
+    const today = new Date();
+    const from = new Date(today); from.setDate(from.getDate()-30);
+    document.getElementById('supplyFrom').value = from.toISOString().split('T')[0];
+    document.getElementById('supplyTo').value = today.toISOString().split('T')[0];
+    applySupplyCustom();
+  }
+}
+
+function applySupplyCustom() {
+  const f = document.getElementById('supplyFrom').value;
+  const t = document.getElementById('supplyTo').value;
+  if (!f || !t) return;
+  supplyCustomFrom = f; supplyCustomTo = t;
+  renderSupply();
+}
+
+function renderSupply() {
+  const el = document.getElementById('supplyGrid'); if (!el) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let cutoff, rangeEnd, prevCutoff, prevRangeEnd;
+  if (supplyCustomFrom && supplyCustomTo) {
+    const [fy,fm,fd] = supplyCustomFrom.split('-');
+    const [ty,tm,td] = supplyCustomTo.split('-');
+    cutoff   = new Date(+fy,+fm-1,+fd);
+    rangeEnd = new Date(+ty,+tm-1,+td);
+    const span = rangeEnd - cutoff;
+    prevRangeEnd = new Date(cutoff - 1);
+    prevCutoff   = new Date(prevRangeEnd - span);
+  } else {
+    cutoff       = new Date(today); cutoff.setDate(cutoff.getDate() - supplyWindow);
+    rangeEnd     = today;
+    prevRangeEnd = new Date(cutoff - 1);
+    prevCutoff   = new Date(today); prevCutoff.setDate(prevCutoff.getDate() - supplyWindow * 2);
+  }
+
+  const themes = ['Date Hook','Problem Statement','Generic','Social Proof','AI Creative'];
+  const themeEmoji = {}; // emojis removed
+
+  const inRange = (goLive, from, to) => {
+    if (!goLive) return false;
+    const [y,m,d] = goLive.split('-');
+    const gl = new Date(+y,+m-1,+d);
+    return gl >= from && gl <= to;
+  };
+
+  const rows = themes.map(th => {
+    const launched  = C.filter(c => inRange(c.go_live, cutoff, rangeEnd) && c.theme === th);
+    const prevCount = C.filter(c => inRange(c.go_live, prevCutoff, prevRangeEnd) && c.theme === th).length;
+    return { theme: th, count: launched.length, prevCount, creatives: launched };
+  });
+  const total     = rows.reduce((s,r) => s+r.count, 0);
+  const prevTotal = rows.reduce((s,r) => s+r.prevCount, 0);
+
+  const deltaHtml = (cur, prev) => {
+    const d = cur - prev;
+    if (d === 0) return `<span style="color:var(--text3);font-size:11px;margin-left:6px">↔ 0</span>`;
+    if (d > 0)   return `<span style="color:var(--green);font-size:11px;margin-left:6px">↑${d}</span>`;
+                 return `<span style="color:var(--red);font-size:11px;margin-left:6px">↓${Math.abs(d)}</span>`;
+  };
+
+  const chipHtml = c => {
+    const isActive = !c.paused_from;
+    const dot = isActive
+      ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:middle"></span>`
+      : `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text3);margin-right:4px;vertical-align:middle"></span>`;
+    const goLiveFmt = c.go_live ? (() => { const [y,m,d]=c.go_live.split('-'); return new Date(+y,+m-1,+d).toLocaleDateString('en-IN',{day:'numeric',month:'short'}); })() : '';
+    return `<span title="${isActive?'Active':'Paused'} · Go-live: ${goLiveFmt}" style="display:inline-flex;align-items:center;background:var(--card-bg);border:1px solid ${isActive?'var(--gborder)':'var(--border)'};border-radius:4px;padding:3px 8px;margin:2px 3px 2px 0;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer" onclick="openPopup('${c.key}')">${dot}${c.key}</span>`;
+  };
+
+  el.innerHTML = `
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:6px 12px;color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em">Theme</th>
+            <th style="text-align:center;padding:6px 12px;color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em">Launched</th>
+            <th style="text-align:left;padding:6px 12px;color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em">Creatives</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:7px 12px;font-weight:600;font-size:12px">${r.theme}</td>
+            <td style="padding:7px 12px;text-align:center;white-space:nowrap">
+              <span style="font-size:15px;font-weight:700;color:${r.count>0?'var(--green)':'var(--text3)'}">${r.count}</span>
+              ${deltaHtml(r.count, r.prevCount)}
+            </td>
+            <td style="padding:7px 12px">
+              ${r.creatives.length ? r.creatives.map(chipHtml).join('') : '<span style="color:var(--text3)">—</span>'}
+            </td>
+          </tr>`).join('')}
+          <tr style="border-top:2px solid var(--border)">
+            <td style="padding:7px 12px;font-weight:700;color:var(--text);font-size:12px">Total</td>
+            <td style="padding:7px 12px;text-align:center;white-space:nowrap">
+              <span style="font-size:15px;font-weight:700;color:${total>0?'var(--green)':'var(--text3)'}">${total}</span>
+              ${deltaHtml(total, prevTotal)}
+            </td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function applyData(data) {
+  Object.assign(RAW, data);
+  C.length = 0;
+  data.creatives.forEach(c => C.push(c));
+  DAILY_DATA = data.dailyData || {};
+  initOverview();
+  renderSupply();
+  updateActionMenuOptions();
+  updateAllThemeLbl();
+  populateMonthBtns();
+  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled();
+  document.getElementById('btnActive').classList.toggle('active', allS.status==='active');
+  document.getElementById('btnPaused').classList.toggle('active', allS.status==='paused');
+  document.getElementById('cplBtnActive').classList.toggle('active', cplS.status==='active');
+  document.getElementById('d3BtnActive').classList.toggle('active', d3S.status==='active');
+  document.getElementById('roBtnActive').classList.toggle('active', roS.status==='active');
+  document.getElementById('scBtnActive').classList.toggle('active', scS.status==='active');
+  const goLiveDates = RAW.creatives.map(c => c.go_live).sort();
+  const fmtD = s => { if(!s) return '—'; const [y,m,d] = s.split('-'); return new Date(+y,+m-1,+d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); };
+  const activeCount = RAW.creatives.filter(c => !c.paused_from).length;
+  const latestActivity = data.datasetLatest || goLiveDates[goLiveDates.length-1];
+  document.getElementById('dataInfo').textContent =
+    `${fmtD(goLiveDates[0])} – ${fmtD(latestActivity)} · ${RAW.creatives.length} creatives (${activeCount} active)`;
+}
+
+async function loadFromGoogleSheets() {
+  const status = document.getElementById('uploadStatus');
+  const btn = document.getElementById('refreshBtn');
+  status.textContent = '⟳ Syncing…';
+  status.style.color = 'var(--yellow)';
+  if (btn) { btn.disabled = true; btn.textContent = '↻ Syncing…'; }
+  try {
+    const res = await fetch(SHEETS_CSV_URL + '&t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const data = processCSV(text);
+    applyData(data);
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+    status.textContent = `✓ Synced at ${time}`;
+    status.style.color = 'var(--green)';
+    status.style.fontWeight = '700';
+    setTimeout(() => { status.textContent = ''; status.style.fontWeight = ''; }, 5000);
+  } catch(err) {
+    status.textContent = '✗ Sync failed: ' + err.message;
+    status.style.color = 'var(--red)';
+    status.style.fontWeight = '700';
+    console.error('Sheets sync error:', err);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↻ Refresh'; }
+  }
+}
+
+// Auto-load on page open
+window.addEventListener('DOMContentLoaded', () => loadFromGoogleSheets());
+
 // ── CSV UPLOAD ──
 function handleCSVUpload(input) {
   const file = input.files[0];
@@ -1139,23 +2128,7 @@ function handleCSVUpload(input) {
   reader.onload = e => {
     try {
       const data = processCSV(e.target.result);
-      // Replace RAW data and re-render everything
-      // Update RAW data
-      Object.assign(RAW, data);
-      // Sync C array in place (C is a reference to original RAW.creatives)
-      C.length = 0;
-      data.creatives.forEach(c => C.push(c));
-      // Store daily data for popup
-      DAILY_DATA = data.dailyData || {};
-      initOverview();
-      updateActionMenuOptions();
-      updateAllThemeLbl();
-      // Re-render active tab tables
-      renderAll(); renderCpl(); renderD3(); renderRo();
-      const dates = RAW.creatives.map(c => c.go_live).sort();
-      const acts = RAW.creatives.filter(c => !c.paused_from).length;
-      document.getElementById('dataInfo').textContent =
-        `${dates[0]} – ${dates[dates.length-1]} · ${RAW.creatives.length} creatives`;
+      applyData(data);
       status.textContent = '✓ Loaded successfully';
       status.style.color = 'var(--green)';
       status.style.fontWeight = '700';
@@ -1338,6 +2311,7 @@ function processCSV(text) {
     const is_ai = /AI|_ai/i.test(key);
     const total_spend = Math.round(c.totalSpend);
     const total_leads = Math.round(c.totalLeads);
+    const active_days = Object.values(c.days).filter(v => v.spend >= MIN_SPEND).length;
 
     // CPL — first 21 days
     const goLive20 = new Date(goLive); goLive20.setDate(goLive20.getDate()+20);
@@ -1347,7 +2321,7 @@ function processCSV(text) {
       if (d <= goLive20 && d < today) { cplSpend += v.spend; cplLeads += v.leads; }
     }
     const cpl_val = cplLeads > 0 ? Math.round(cplSpend/cplLeads*100)/100 : null;
-    const cpl_tag = cpl_val == null ? 'Red' : cpl_val < 10 ? 'Green' : cpl_val <= 15 ? 'Yellow' : 'Red';
+    const cpl_tag = cpl_val == null ? 'Red' : cpl_val < getThr().cplGreen ? 'Green' : cpl_val <= getThr().cplYellow ? 'Yellow' : 'Red';
 
     // D3
     const d3Win = age < 14 ? null : age <= 20 ? 7 : age <= 27 ? 14 : 21;
@@ -1362,12 +2336,12 @@ function processCSV(text) {
       if (a === 0) cost_d3_tag = 'Red';
       else {
         cost_d3_val = Math.round(s/a*100)/100;
-        cost_d3_tag = cost_d3_val < 33 ? 'Green' : cost_d3_val <= 38 ? 'Yellow' : 'Red';
+        cost_d3_tag = cost_d3_val < getThr().d3Green ? 'Green' : cost_d3_val <= getThr().d3Yellow ? 'Yellow' : 'Red';
       }
     }
 
     // D7
-    const d7Win = age < 21 ? null : age <= 27 ? 7 : 14;
+    const d7Win = age < 21 ? null : age <= 27 ? 7 : age <= 34 ? 14 : 21;
     let cost_d7_tag = 'Not Eligible Yet', cost_d7_val = null;
     if (d7Win) {
       const cutoff = new Date(goLive); cutoff.setDate(cutoff.getDate()+d7Win-1);
@@ -1379,12 +2353,12 @@ function processCSV(text) {
       if (a === 0) cost_d7_tag = 'Red';
       else {
         cost_d7_val = Math.round(s/a*100)/100;
-        cost_d7_tag = cost_d7_val < 66 ? 'Green' : cost_d7_val <= 95 ? 'Yellow' : 'Red';
+        cost_d7_tag = cost_d7_val < getThr().d7Green ? 'Green' : cost_d7_val <= getThr().d7Yellow ? 'Yellow' : 'Red';
       }
     }
 
     // ROAS
-    const roasWin = age < 28 ? null : age <= 34 ? 7 : 14;
+    const roasWin = age < 28 ? null : age <= 34 ? 7 : age <= 41 ? 14 : 21;
     let roas_tag = 'Not Eligible Yet', roas_val = null;
     if (roasWin) {
       const cutoff = new Date(goLive); cutoff.setDate(cutoff.getDate()+roasWin-1);
@@ -1396,7 +2370,7 @@ function processCSV(text) {
       if (rs === 0) roas_tag = 'Red';
       else {
         roas_val = Math.round(rr/rs*100)/100;
-        roas_tag = roas_val >= 1.8 ? 'Green' : roas_val > 1.2 ? 'Yellow' : 'Red';
+        roas_tag = roas_val >= getThr().roasGreen ? 'Green' : roas_val > getThr().roasYellow ? 'Yellow' : 'Red';
       }
     }
 
@@ -1446,11 +2420,94 @@ function processCSV(text) {
       }
     }
 
+    // ── SCALED METRICS (no max-day cap, all data) ──
+    let sc_cpl_val=null, sc_cpl_tag='Red';
+    let sc_d3_val=null,  sc_d3_tag='Not Eligible Yet';
+    let sc_d7_val=null,  sc_d7_tag='Not Eligible Yet';
+    let sc_roas_val=null,sc_roas_tag='Not Eligible Yet';
+
+    if (active_days > 28) {
+      // CPL — all days (no attribution lag concern for leads)
+      let scS=0,scL=0;
+      for (const [dk,v] of Object.entries(c.days)) {
+        const d = new Date(dk);
+        if (d < today) { scS+=v.spend; scL+=v.leads; }
+      }
+      sc_cpl_val = scL > 0 ? Math.round(scS/scL*100)/100 : null;
+      sc_cpl_tag = sc_cpl_val == null ? 'Red' : sc_cpl_val < getThr().cplGreen ? 'Green' : sc_cpl_val <= getThr().cplYellow ? 'Yellow' : 'Red';
+
+      // helper: sum spend+metric for first `win` calendar days from go-live
+      const winSum = (metric) => {
+        let s=0,a=0;
+        for (const [dk,v] of Object.entries(c.days)) {
+          const d = new Date(dk);
+          if (d < today && d <= metric.cutoff) { s+=v.spend; a+=v[metric.key]; }
+        }
+        return {s,a};
+      };
+
+      // D3 — tiered window: floor((active_days-7)/7)*7 days from go-live
+      // active_days 28-34→21d, 35-41→28d, 42-48→35d, ...
+      const d3Win = Math.floor((active_days - 7) / 7) * 7;
+      const d3Cutoff = new Date(goLive); d3Cutoff.setDate(d3Cutoff.getDate() + d3Win - 1);
+      const {s:d3S, a:d3A} = winSum({key:'d3', cutoff:d3Cutoff});
+      if (d3A === 0) sc_d3_tag = 'Red';
+      else {
+        sc_d3_val = Math.round(d3S/d3A*100)/100;
+        sc_d3_tag = sc_d3_val < getThr().d3Green ? 'Green' : sc_d3_val <= getThr().d3Yellow ? 'Yellow' : 'Red';
+      }
+
+      // D7 — tiered window: floor((active_days-14)/7)*7 days from go-live
+      // active_days 28-34→14d, 35-41→21d, 42-48→28d, ...
+      const d7Win = Math.floor((active_days - 14) / 7) * 7;
+      const d7Cutoff = new Date(goLive); d7Cutoff.setDate(d7Cutoff.getDate() + d7Win - 1);
+      const {s:d7S, a:d7A} = winSum({key:'d7', cutoff:d7Cutoff});
+      if (d7A === 0) sc_d7_tag = 'Red';
+      else {
+        sc_d7_val = Math.round(d7S/d7A*100)/100;
+        sc_d7_tag = sc_d7_val < getThr().d7Green ? 'Green' : sc_d7_val <= getThr().d7Yellow ? 'Yellow' : 'Red';
+      }
+
+      // ROAS — min 28 active days, tiered window: floor((active_days-21)/7)*7 days from go-live
+      // active_days 28-34→7d, 35-41→14d, 42-48→21d, 49-55→28d, ...
+      if (active_days >= 28) {
+        const roasWin = Math.floor((active_days - 21) / 7) * 7;
+        const roasCutoff = new Date(goLive); roasCutoff.setDate(roasCutoff.getDate() + roasWin - 1);
+        let roasS=0, roasRev=0;
+        for (const [dk,v] of Object.entries(c.days)) {
+          const d = new Date(dk);
+          if (d < today && d <= roasCutoff) { roasS+=v.spend; roasRev+=v.revenue; }
+        }
+        if (roasS === 0) sc_roas_tag = 'Red';
+        else {
+          sc_roas_val = Math.round(roasRev/roasS*100)/100;
+          sc_roas_tag = sc_roas_val >= getThr().roasGreen ? 'Green' : sc_roas_val > getThr().roasYellow ? 'Yellow' : 'Red';
+        }
+      }
+    }
+
+    // Scaled health score — same weights as mature (28d+) evergreen: CPL 30, D3 25, D7 20, ROAS 25
+    let sc_health_score = null;
+    if (active_days > 28) {
+      const ts2 = {Green:2, Yellow:1, Red:0};
+      const w = [];
+      if (sc_cpl_tag in ts2)  w.push([ts2[sc_cpl_tag],  30]);
+      if (sc_d3_tag  in ts2)  w.push([ts2[sc_d3_tag],   25]);
+      if (sc_d7_tag  in ts2)  w.push([ts2[sc_d7_tag],   20]);
+      if (sc_roas_tag in ts2) w.push([ts2[sc_roas_tag],  25]);
+      if (w.length > 0) {
+        const tw = w.reduce((s,[,wt])=>s+wt, 0);
+        sc_health_score = Math.round(w.reduce((s,[v,wt])=>s+v*wt,0) / tw * 50);
+      }
+    }
+
     creatives.push({
       key, ad_name: c.adName, go_live: fmtDate(goLive), age, theme, dh_phase,
       paused_from, cpl_val, cpl_tag, cost_d3_val, cost_d3_tag,
       cost_d7_val, cost_d7_tag, roas_val, roas_tag,
-      total_spend, total_leads, is_ai, health_score, confidence, action,
+      sc_cpl_val, sc_cpl_tag, sc_d3_val, sc_d3_tag, sc_d7_val, sc_d7_tag, sc_roas_val, sc_roas_tag,
+      sc_health_score,
+      total_spend, total_leads, active_days, is_ai, health_score, confidence, action,
       utm_ids: [...(creativeIds[key]||[])].sort()
     });
   }
@@ -1506,6 +2563,7 @@ function processCSV(text) {
   return {
     creatives,
     dailyData,
+    datasetLatest: datasetLatest ? datasetLatest.toISOString().split('T')[0] : null,
     scorecard: {current:scorecard(cur),prev1:scorecard(p1),prev2:scorecard(p2),
                 cur_month:cur,prev1_month:p1,prev2_month:p2},
     theme_summary
@@ -1514,11 +2572,9 @@ function processCSV(text) {
 
 function scorecardForMonth(monthStr, themes) {
   let mc = C.filter(c => c.go_live.startsWith(monthStr));
-  // themes can be: '' (all), a string, or an array
-  if (themes && themes.length > 0 && themes.length < 5) {
-    const arr = Array.isArray(themes) ? themes : [themes];
-    mc = mc.filter(c => arr.includes(c.theme));
-  }
+  // themes can be: '' (all), a string, array, or Set. Empty or full-5 = no filter.
+  const arr = themes instanceof Set ? [...themes] : Array.isArray(themes) ? themes : themes ? [themes] : [];
+  if (arr.length > 0 && arr.length < 5) mc = mc.filter(c => arr.includes(c.theme));
   return [['CPL','cpl_tag'],['Cost D3','cost_d3_tag'],['Cost D7','cost_d7_tag'],['ROAS','roas_tag']].map(([metric,key]) => {
     const eligible = mc.filter(c => c[key] !== 'Not Eligible Yet');
     return {
@@ -1531,24 +2587,89 @@ function scorecardForMonth(monthStr, themes) {
   });
 }
 
-function renderScorecardTable(rows) {
-  return rows.map(r=>`<tr>
-    <td>${r.metric}</td>
-    <td class="sc-t">${r.total}</td>
-    <td class="sc-g">${r.green}</td>
-    <td class="sc-y">${r.yellow}</td>
-    <td class="sc-r">${r.red}</td>
-  </tr>`).join('');
+const METRIC_TAB_MAP = {'CPL':'cpl','Cost D3':'d3d7','Cost D7':'d3d7','ROAS':'roas'};
+
+function renderScorecardTable(rows, month) {
+  return rows.map(r=>{
+    const tab = METRIC_TAB_MAP[r.metric];
+    const clickable = tab && month;
+    return `<tr ${clickable?`onclick="navigateToTab('${tab}','${month}')" style="cursor:pointer" class="sc-row-link"`:''}">
+      <td>${r.metric}${clickable?` <span style="font-size:9px;color:var(--text3);margin-left:4px">↗</span>`:''}  </td>
+      <td class="sc-t">${r.total}</td>
+      <td class="sc-g">${r.green}</td>
+      <td class="sc-y">${r.yellow}</td>
+      <td class="sc-r">${r.red}</td>
+    </tr>`;
+  }).join('');
+}
+
+function navigateToTab(tab, month) {
+  const stateMap   = {cpl:cplS, d3d7:d3S, roas:roS};
+  const lblMap     = {cpl:'cplMonthLbl',  d3d7:'d3MonthLbl',  roas:'roMonthLbl'};
+  const btnMap     = {cpl:'cplMonthBtn',  d3d7:'d3MonthBtn',  roas:'roMonthBtn'};
+  const actBtnMap  = {cpl:'cplBtnActive', d3d7:'d3BtnActive', roas:'roBtnActive'};
+  const pauBtnMap  = {cpl:'cplBtnPaused', d3d7:'d3BtnPaused', roas:'roBtnPaused'};
+  const menuMap    = {cpl:'cplThemeMenu', d3d7:'d3ThemeMenu', roas:'roThemeMenu'};
+  const tabKeyMap  = {cpl:'cpl', d3d7:'d3', roas:'ro'};
+  const state = stateMap[tab];
+  if (!state) return;
+
+  // Apply month & clear status filter (show all)
+  state.month = month;
+  state.status = '';
+  state.p = 1;
+
+  // Carry forward overview theme selection
+  // scSelectedThemes: 0 or all-5 = "All"; subset = specific filter
+  const ovThemes = (scSelectedThemes.size === 0 || scSelectedThemes.size === 5)
+    ? new Set()
+    : new Set(scSelectedThemes);
+  state.themes = ovThemes;
+  // Sync theme dropdown checkboxes for the target tab
+  const menu = document.getElementById(menuMap[tab]);
+  if (menu) {
+    menu.querySelectorAll('.theme-dd-item').forEach(item => {
+      const cb = item.querySelector('input[type=checkbox]');
+      // Extract theme name from onclick attr
+      const m = item.getAttribute('onclick').match(/'([^']+)'\s*,\s*this/);
+      const t = m ? m[1] : '';
+      const sel = ovThemes.size > 0 && ovThemes.has(t);
+      cb.checked = sel;
+      item.classList.toggle('checked', sel);
+    });
+  }
+  updateThemeLbl(tabKeyMap[tab]);
+
+  // Update month button label
+  const lbl = document.getElementById(lblMap[tab]);
+  const mbtn = document.getElementById(btnMap[tab]);
+  if (lbl)  lbl.textContent = month;
+  if (mbtn) mbtn.classList.add('has-sel');
+
+  // Deactivate Active/Paused status buttons
+  const aBtn = document.getElementById(actBtnMap[tab]);
+  const pBtn = document.getElementById(pauBtnMap[tab]);
+  if (aBtn) aBtn.classList.remove('active');
+  if (pBtn) pBtn.classList.remove('active');
+
+  // Switch tab and render
+  switchTab(tab);
 }
 
 function updateScorecard(monthStr, tbodyId, themes) {
   const rows = scorecardForMonth(monthStr, themes);
-  document.getElementById(tbodyId).innerHTML = renderScorecardTable(rows);
+  document.getElementById(tbodyId).innerHTML = renderScorecardTable(rows, monthStr);
 }
 
 initOverview();
+renderSupply();
 updateActionMenuOptions();
 updateAllThemeLbl();
+populateMonthBtns();
+// Highlight Active buttons by default across all tabs
+['cplBtnActive','d3BtnActive','roBtnActive','scBtnActive'].forEach(id => {
+  const el = document.getElementById(id); if (el) el.classList.add('active');
+});
 </script>
 </body>
 </html>
