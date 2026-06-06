@@ -2199,7 +2199,7 @@ function processCSV(text) {
 
   function getTheme(key) {
     for (const ov of EVERGREEN) if (key.toLowerCase().includes(ov.toLowerCase())) return 'Generic';
-    if (new RegExp('\\d+(' + MONTHS_PAT + ')').test(key)) return 'Date Hook';
+    if (new RegExp('\\d+(?:st|nd|rd|th)?(' + MONTHS_PAT + ')').test(key)) return 'Date Hook';
     for (const p of ['BP','Thyroid','Acidity','Pain','Pcos','Period','Weight','Hair','Lung','Brain','Heart','Anxiety','Fat','Burn','Neck','Back'])
       if (key.toLowerCase().includes(p.toLowerCase())) return 'Problem Statement';
     for (const r of ['Review','Testimonial','SeediaChadteHi','AreAajNhi'])
