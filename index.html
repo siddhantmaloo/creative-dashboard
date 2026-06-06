@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Testing Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#0b0d12;--bg2:#10131a;--bg3:#161b24;--bg4:#1c2230;
+  --border:#1f2736;--border2:#28334a;
+  --text:#dde3f0;--text2:#7b8499;--text3:#414d63;
+  --green:#3ddc84;--gbg:rgba(61,220,132,.1);--gborder:rgba(61,220,132,.25);
+  --yellow:#f5c842;--ybg:rgba(245,200,66,.1);--yborder:rgba(245,200,66,.25);
+  --red:#ff5f5f;--rbg:rgba(255,95,95,.1);--rborder:rgba(255,95,95,.25);
+  --blue:#5b9cf6;--bbg:rgba(91,156,246,.1);--bborder:rgba(91,156,246,.25);
+  --purple:#a78bfa;--pbg:rgba(167,139,250,.1);--pborder:rgba(167,139,250,.25);
+  --orange:#fb923c;--obg:rgba(251,146,60,.1);--oborder:rgba(251,146,60,.25);
+  --teal:#2dd4bf;--tbg:rgba(45,212,191,.1);--tborder:rgba(45,212,191,.25);
+  --r:8px;--rs:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;font-size:13px}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+.hdr-title{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.hdr-title span{color:var(--blue)}
+.hdr-meta{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.tabs{display:flex;padding:0 24px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.tab{padding:11px 16px;font-size:11px;font-weight:700;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;text-transform:uppercase;letter-spacing:.04em}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.page{padding:20px 24px;max-width:1500px}
+.panel{display:none}.panel.active{display:block}
+.sec{margin-bottom:22px}
+.sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:10px}
+
+/* ── ACTION BOARD ── */
+.ab-section{margin-bottom:20px}
+.ab-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:8px 14px;border-radius:var(--rs) var(--rs) 0 0;margin-bottom:0;display:flex;align-items:center;gap:8px}
+.ab-section-title.dh{background:rgba(91,156,246,.08);color:var(--blue);border:1px solid var(--bborder);border-bottom:none}
+.ab-section-title.ev{background:rgba(61,220,132,.05);color:var(--green);border:1px solid var(--gborder);border-bottom:none}
+.ab-grid{display:grid;gap:10px}
+.ab-grid.dh-grid{grid-template-columns:repeat(6,1fr);border:1px solid var(--bborder);border-top:none;border-radius:0 0 var(--r) var(--r);padding:12px;background:rgba(91,156,246,.03)}
+.ab-grid.ev-grid{grid-template-columns:repeat(4,1fr);border:1px solid var(--gborder);border-top:none;border-radius:0 0 var(--r) var(--r);padding:12px;background:rgba(61,220,132,.02)}
+.ab-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ab-col-hdr{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ab-col-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.ab-count{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace}
+/* date hook action colors */
+.c-scale{color:var(--green)}.c-watch{color:var(--blue)}.c-wind{color:var(--orange)}.c-drop{color:var(--red)}.c-early{color:var(--text3)}.c-hist{color:var(--text3)}
+.c-ev-scale{color:var(--teal)}.c-ev-watch{color:var(--purple)}.c-ev-mat{color:var(--yellow)}.c-ev-pause{color:var(--red)}
+.ab-item{padding:9px 12px;border-top:1px solid var(--border);cursor:default}
+.ab-item:hover{background:var(--bg3)}
+.ab-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.ab-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.ab-more{padding:6px 12px;font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;border-top:1px solid var(--border)}
+
+/* ── TAGS ── */
+.tag{display:inline-flex;align-items:center;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.tG{background:var(--gbg);color:var(--green);border:1px solid var(--gborder)}
+.tY{background:var(--ybg);color:var(--yellow);border:1px solid var(--yborder)}
+.tR{background:var(--rbg);color:var(--red);border:1px solid var(--rborder)}
+.tna{background:var(--bg4);color:var(--text3);border:1px solid var(--border);font-size:9px}
+.tai{background:var(--pbg);color:var(--purple);border:1px solid var(--pborder)}
+.tpause{background:var(--obg);color:var(--orange);border:1px solid var(--oborder)}
+.ttheme{background:var(--bbg);color:var(--blue);border:1px solid var(--bborder);font-size:9px}
+.ttheme.ev{background:var(--tbg);color:var(--teal);border:1px solid var(--tborder)}
+.score-pill{padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.sp-h{background:var(--gbg);color:var(--green)}.sp-m{background:var(--ybg);color:var(--yellow)}.sp-l{background:var(--rbg);color:var(--red)}
+.conf-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
+.cdH{background:var(--green)}.cdM{background:var(--yellow)}.cdL{background:var(--text3)}
+
+/* ── LAYOUT ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:10px;font-family:'IBM Plex Mono',monospace}
+.chart-wrap{position:relative;height:150px}
+
+/* ── SCORECARD ── */
+.sc-table{width:100%;border-collapse:collapse}
+.sc-table th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:5px 10px;text-align:right;font-family:'IBM Plex Mono',monospace}
+.sc-table th:first-child{text-align:left}
+.sc-table td{padding:7px 10px;font-size:12px;border-top:1px solid var(--border);text-align:right;font-family:'IBM Plex Mono',monospace}
+.sc-table td:first-child{text-align:left;font-family:'Manrope',sans-serif;font-weight:700;color:var(--text)}
+.sc-g{color:var(--green)}.sc-y{color:var(--yellow)}.sc-r{color:var(--red)}.sc-t{color:var(--text2)}
+
+/* ── THEME ── */
+.theme-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.theme-name{font-size:11px;color:var(--text2);width:140px;flex-shrink:0}
+.theme-track{flex:1;height:5px;background:var(--border2);border-radius:3px;overflow:hidden}
+.theme-fill{height:100%;border-radius:3px}
+.theme-val{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text);width:32px;text-align:right;flex-shrink:0}
+.theme-n{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;width:28px;flex-shrink:0}
+
+/* ── SCORE LEGEND ── */
+.score-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;font-size:11px;line-height:1.9;color:var(--text2)}
+.score-box b{color:var(--text)}
+.score-box .dh-rule{border-left:3px solid var(--blue);padding-left:8px;margin:6px 0}
+.score-box .ev-rule{border-left:3px solid var(--teal);padding-left:8px;margin:6px 0}
+
+/* ── FILTERS & TABLE ── */
+.filters{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.fi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:5px 11px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;font-family:'Manrope',sans-serif}
+.fi:hover{color:var(--text);border-color:var(--border2)}
+.fi.active{background:var(--bbg);border-color:var(--bborder);color:var(--blue)}
+.fi.fg.active{background:var(--gbg);border-color:var(--gborder);color:var(--green)}
+.fi.fy.active{background:var(--ybg);border-color:var(--yborder);color:var(--yellow)}
+.fi.fr.active{background:var(--rbg);border-color:var(--rborder);color:var(--red)}
+.fi-input{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:5px 11px;color:var(--text);font-size:11px;font-family:'Manrope',sans-serif;outline:none;width:200px}
+.fi-input:focus{border-color:var(--blue)}
+.fi-sel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:5px 10px;color:var(--text2);font-size:11px;font-family:'Manrope',sans-serif;outline:none;cursor:pointer}
+.cnt{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-left:auto}
+.tbl-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.dtbl{width:100%;border-collapse:collapse}
+.dtbl thead th{background:var(--bg3);padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;font-family:'IBM Plex Mono',monospace}
+.dtbl thead th:hover{color:var(--text2)}
+.dtbl thead th.srt{color:var(--blue)}
+.dtbl tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+.dtbl tbody tr:hover{background:var(--bg3)}
+.dtbl tbody tr:last-child{border-bottom:none}
+.dtbl td{padding:8px 12px;font-size:11px;color:var(--text2);white-space:nowrap;font-family:'IBM Plex Mono',monospace}
+.dtbl td.nm{color:var(--text);font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;max-width:210px;overflow:visible;position:relative}
+.dtbl td.nr{text-align:right}
+.pag{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.pb{padding:3px 10px;border-radius:3px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:11px;font-family:'IBM Plex Mono',monospace}
+.pb:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+.pb:disabled{opacity:.3;cursor:not-allowed}
+.empty{padding:36px;text-align:center;color:var(--text3);font-size:12px}
+.theme-dd-wrap{position:relative}
+.theme-dd-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:5px 11px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.theme-dd-btn:hover{border-color:var(--border2);color:var(--text)}
+.theme-dd-btn.has-sel{background:var(--bbg);border-color:var(--bborder);color:var(--blue)}
+.theme-dd-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:6px;z-index:100;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.theme-dd-menu.open{display:block}
+.theme-dd-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--rs);cursor:pointer;font-size:12px;color:var(--text2);font-family:'Manrope',sans-serif;font-weight:600}
+.theme-dd-item:hover{background:var(--bg4);color:var(--text)}
+.theme-dd-item input[type=checkbox]{accent-color:var(--blue);width:13px;height:13px;cursor:pointer;flex-shrink:0}
+.theme-dd-item.checked{color:var(--blue)}
+.cr-tooltip{position:relative;cursor:default;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-tooltip .tt{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;z-index:9999;min-width:230px;box-shadow:0 8px 24px rgba(0,0,0,.7);pointer-events:none;white-space:normal}
+.tt-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
+.tt-id{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--blue);line-height:1.8}
+#global-tt{display:none;position:fixed;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;z-index:99999;min-width:230px;box-shadow:0 8px 24px rgba(0,0,0,.7);pointer-events:none;white-space:normal}
+#creativePopup{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+#creativePopup.open{display:flex}
+.popup-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;width:min(860px,95vw);max-height:88vh;overflow-y:auto;position:relative}
+.popup-hdr{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:10}
+.popup-title{font-size:15px;font-weight:800;color:var(--text);max-width:600px;line-height:1.3}
+.popup-sub{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:3px}
+.popup-close{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:16px;cursor:pointer;padding:4px 10px;flex-shrink:0}
+.popup-close:hover{color:var(--text)}
+.popup-body{padding:18px 22px}
+.popup-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.pm-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;text-align:center}
+.pm-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:5px}
+.pm-val{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.pm-sub{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.popup-charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.popup-chart-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.popup-chart-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+.popup-chart-wrap{position:relative;height:130px}
+.popup-ids{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:18px}
+.popup-ids-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+.popup-id-list{display:flex;flex-wrap:wrap;gap:6px}
+.popup-id-pill{background:var(--bg4);border:1px solid var(--border2);border-radius:4px;padding:3px 8px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--blue)}
+.popup-daily{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.popup-daily-title{padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);font-family:'IBM Plex Mono',monospace;border-bottom:1px solid var(--border)}
+.pdt{width:100%;border-collapse:collapse;font-size:11px;font-family:'IBM Plex Mono',monospace}
+.pdt th{background:var(--bg4);padding:6px 12px;text-align:right;color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.pdt th:first-child{text-align:left}
+.pdt td{padding:6px 12px;border-top:1px solid var(--border);text-align:right;color:var(--text2)}
+.pdt td:first-child{text-align:left;color:var(--text)}
+.pdt tr:hover td{background:var(--bg4)}
+.no-daily{padding:32px;text-align:center;color:var(--text3);font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-title">Creative Testing <span>Dashboard</span></div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="hdr-meta" id="dataInfo">Apr 7 – Jun 1, 2026 &nbsp;·&nbsp; 84 creatives</div>
+    <label id="uploadBtn" style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--bbg);border:1px solid var(--bborder);border-radius:var(--rs);color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;transition:all .15s" onmouseover="this.style.background='rgba(91,156,246,.2)'" onmouseout="this.style.background='var(--bbg)'">
+      ↑ Upload CSV
+      <input type="file" accept=".csv" style="display:none" onchange="handleCSVUpload(this)">
+    </label>
+    <div id="uploadStatus" style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text3)"></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('overview')">Overview</div>
+  <div class="tab" onclick="switchTab('all')">All Creatives</div>
+  <div class="tab" onclick="switchTab('cpl')">CPL View</div>
+  <div class="tab" onclick="switchTab('d3d7')">D3 / D7</div>
+  <div class="tab" onclick="switchTab('roas')">ROAS</div>
+</div>
+
+<div class="page">
+
+<!-- ══════ OVERVIEW ══════ -->
+<div class="panel active" id="panel-overview">
+
+  <div class="sec">
+    <div class="sec-label">Action Board</div>
+
+    <!-- Date Hooks -->
+    <div class="ab-section">
+      <div class="ab-section-title dh">📅 Date Hook Creatives &nbsp;<span style="font-size:10px;font-weight:500;color:var(--text2)">Active this week · CPL-only signal · 1-week lifecycle · relaunch same angle next Monday if Green</span><span style="margin-left:auto;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text3)" id="dhTotalNote"></span></div>
+      <div class="ab-grid dh-grid" id="dhBoard"></div>
+    </div>
+
+    <!-- Evergreens -->
+    <div class="ab-section">
+      <div class="ab-section-title ev">🌿 Evergreen Creatives &nbsp;<span style="font-size:10px;font-weight:500;color:var(--text2)">Full funnel signal · CPL → D3/D7 → ROAS · stage-based health score</span></div>
+      <div class="ab-grid ev-grid" id="evBoard"></div>
+    </div>
+  </div>
+
+  <div class="two-col sec">
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="sec-label" style="margin-bottom:0">Monthly Scorecard</div>
+        <div class="theme-dd-wrap">
+          <button class="theme-dd-btn" id="scGlobalBtn" onclick="toggleDD('scGlobalMenu','scGlobalBtn')">🏷 Theme <span id="scGlobalLbl">All</span> ▾</button>
+          <div class="theme-dd-menu" id="scGlobalMenu" style="right:0;left:auto">
+            <div class="theme-dd-item" onclick="scGlobalPick('',this)"><input type="checkbox"> All themes</div>
+            <div class="theme-dd-item checked" onclick="scGlobalPick('Date Hook',this)"><input type="checkbox" checked>📅 Date Hook</div>
+            <div class="theme-dd-item checked" onclick="scGlobalPick('Problem Statement',this)"><input type="checkbox" checked>🩺 Problem Stmt</div>
+            <div class="theme-dd-item checked" onclick="scGlobalPick('Generic',this)"><input type="checkbox" checked>💬 Generic</div>
+            <div class="theme-dd-item checked" onclick="scGlobalPick('Social Proof',this)"><input type="checkbox" checked>⭐ Social Proof</div>
+            <div class="theme-dd-item checked" onclick="scGlobalPick('AI Creative',this)"><input type="checkbox" checked>🤖 AI Creative</div>
+          </div>
+        </div>
+      </div>
+      <div class="three-col" id="scorecardGrid"></div>
+    </div>
+    <div>
+      <div class="sec-label">Scoring Logic</div>
+      <div class="score-box">
+        <div class="dh-rule">
+          <b>Date Hook</b> — CPL only (1-week window)<br>
+          Age &lt;3d → Too Early &nbsp;·&nbsp; 3–7d: Green=Scale+Relaunch, Yellow=Watch, Red=Drop<br>
+          8–14d → Wind Down (still running past cohort date)<br>
+          &gt;14d → Historical reference
+        </div>
+        <div class="ev-rule">
+          <b>Evergreen</b> — Stage-based score<br>
+          Early (0–13d): CPL 100%<br>
+          Mid (14–27d): CPL 40% · D3 35% · D7 25%<br>
+          Mature (28d+): CPL 30% · D3 25% · D7 20% · ROAS 25%<br>
+          ROAS weight: 10% (&lt;₹5K spend) → 20% (₹5–20K) → 30% (&gt;₹20K)
+        </div>
+        Score ≥70 → Scale &nbsp;·&nbsp; 50–69 → Watch &nbsp;·&nbsp; &lt;50 → Pause
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col sec">
+    <div>
+      <div class="sec-label">Theme Performance (avg Health Score)</div>
+      <div class="card" id="themeCard"></div>
+    </div>
+    <div>
+      <div class="sec-label">Tag Distribution</div>
+      <div class="two-col">
+        <div class="card"><div class="card-title">CPL Tags</div><div class="chart-wrap"><canvas id="cplDonut"></canvas></div></div>
+        <div class="card"><div class="card-title">ROAS Tags</div><div class="chart-wrap"><canvas id="roasDonut"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════ ALL CREATIVES ══════ -->
+<div class="panel" id="panel-all">
+  <div class="filters">
+    <input class="fi-input" type="text" placeholder="Search creative…" oninput="allS.q=this.value;allS.p=1;renderAll()">
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="allThemeBtn" onclick="toggleDD('allThemeMenu','allThemeBtn')">🏷 Theme <span id="allThemeLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="allThemeMenu">
+        <div class="theme-dd-item checked" onclick="toggleThemeDd('Date Hook',this)"><input type="checkbox" checked>📅 Date Hook</div>
+        <div class="theme-dd-item checked" onclick="toggleThemeDd('Problem Statement',this)"><input type="checkbox" checked>🩺 Problem Stmt</div>
+        <div class="theme-dd-item checked" onclick="toggleThemeDd('Generic',this)"><input type="checkbox" checked>💬 Generic</div>
+        <div class="theme-dd-item checked" onclick="toggleThemeDd('Social Proof',this)"><input type="checkbox" checked>⭐ Social Proof</div>
+        <div class="theme-dd-item checked" onclick="toggleThemeDd('AI Creative',this)"><input type="checkbox" checked>🤖 AI Creative</div>
+      </div>
+    </div>
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="allActionBtn" onclick="toggleDD('allActionMenu','allActionBtn')">⚡ Action <span id="allActionLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="allActionMenu">
+        <div class="theme-dd-item" onclick="toggleActionDd('Scale + Relaunch',this)"><input type="checkbox">🚀 Scale + Relaunch</div>
+        <div class="theme-dd-item" onclick="toggleActionDd('Scale',this)"><input type="checkbox">⬆ Scale</div>
+        <div class="theme-dd-item" onclick="toggleActionDd('Watch',this)"><input type="checkbox">👁 Watch</div>
+        <div class="theme-dd-item" onclick="toggleActionDd('Wind Down',this)"><input type="checkbox">🌅 Wind Down</div>
+        <div class="theme-dd-item" onclick="toggleActionDd('Maturing',this)"><input type="checkbox">⏳ Maturing</div>
+        <div class="theme-dd-item" onclick="toggleActionDd('Pause',this)"><input type="checkbox">⏸ Pause</div>
+        <div class="theme-dd-item" onclick="toggleActionDd('Drop Angle',this)"><input type="checkbox">🔴 Drop Angle</div>
+        <div class="theme-dd-item" onclick="toggleActionDd('Too Early',this)"><input type="checkbox">⏳ Too Early</div>
+        <div class="theme-dd-item" onclick="toggleActionDd('Historical',this)"><input type="checkbox">📁 Historical</div>
+      </div>
+    </div>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <button class="fi" id="btnActive" onclick="toggleStatus('active',this)">● Active</button>
+    <button class="fi" id="btnPaused" onclick="toggleStatus('paused',this)">⏸ Paused</button>
+    <span class="cnt" id="all-cnt"></span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="dtbl">
+      <thead><tr>
+        <th onclick="sortA('paused_from')">Status</th>
+        <th onclick="sortA('key')">Creative</th>
+        <th onclick="sortA('theme')">Theme</th>
+        <th onclick="sortA('age')">Age</th>
+        <th onclick="sortA('health_score')" class="srt">Score</th>
+        <th>Confidence</th>
+        <th onclick="sortA('action')">Action</th>
+        <th onclick="sortA('cpl_tag')">CPL Tag</th>
+        <th onclick="sortA('cpl_val')">CPL ₹</th>
+        <th onclick="sortA('cost_d3_tag')">D3</th>
+        <th onclick="sortA('cost_d7_tag')">D7</th>
+        <th onclick="sortA('roas_tag')">ROAS</th>
+        <th onclick="sortA('total_spend')">Spend</th>
+      </tr></thead>
+      <tbody id="allBody"></tbody>
+    </table>
+    <div class="pag" id="allPag"></div>
+  </div>
+</div>
+
+<!-- ══════ CPL ══════ -->
+<div class="panel" id="panel-cpl">
+  <div class="filters">
+    <input class="fi-input" type="text" placeholder="Search…" oninput="cplS.q=this.value;cplS.p=1;renderCpl()">
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="cplThemeBtn" onclick="toggleDD('cplThemeMenu','cplThemeBtn')">🏷 Theme <span id="cplThemeLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="cplThemeMenu">
+        <div class="theme-dd-item" onclick="toggleTabTheme('cpl','Date Hook',this)"><input type="checkbox" id="cplT1">📅 Date Hook</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('cpl','Problem Statement',this)"><input type="checkbox" id="cplT2">🩺 Problem Stmt</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('cpl','Generic',this)"><input type="checkbox" id="cplT3">💬 Generic</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('cpl','Social Proof',this)"><input type="checkbox" id="cplT4">⭐ Social Proof</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('cpl','AI Creative',this)"><input type="checkbox" id="cplT5">🤖 AI Creative</div>
+      </div>
+    </div>
+    <button class="fi fg" onclick="toggleF(cplS,'Green','cpl_tag',this,renderCpl)">🟢 Green</button>
+    <button class="fi fy" onclick="toggleF(cplS,'Yellow','cpl_tag',this,renderCpl)">🟡 Yellow</button>
+    <button class="fi fr" onclick="toggleF(cplS,'Red','cpl_tag',this,renderCpl)">🔴 Red</button>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <button class="fi" id="cplBtnActive" onclick="toggleTabStatus(cplS,'active','cplBtnActive','cplBtnPaused',renderCpl)">● Active</button>
+    <button class="fi" id="cplBtnPaused" onclick="toggleTabStatus(cplS,'paused','cplBtnActive','cplBtnPaused',renderCpl)">⏸ Paused</button>
+    <span class="cnt" id="cpl-cnt"></span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="dtbl"><thead><tr>
+      <th onclick="sortC('key')">Creative</th>
+      <th onclick="sortC('theme')">Theme</th>
+      <th onclick="sortC('age')" class="srt">Age</th>
+      <th>Status</th>
+      <th onclick="sortC('cpl_val')">CPL ₹</th>
+      <th>CPL Tag</th>
+      <th>D3</th><th>D7</th><th>ROAS</th>
+      <th onclick="sortC('total_spend')">Spend</th>
+      <th onclick="sortC('total_leads')">Leads</th>
+    </tr></thead>
+    <tbody id="cplBody"></tbody></table>
+    <div class="pag" id="cplPag"></div>
+  </div>
+</div>
+
+<!-- ══════ D3/D7 ══════ -->
+<div class="panel" id="panel-d3d7">
+  <div class="filters">
+    <input class="fi-input" type="text" placeholder="Search…" oninput="d3S.q=this.value;d3S.p=1;renderD3()">
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="d3ThemeBtn" onclick="toggleDD('d3ThemeMenu','d3ThemeBtn')">🏷 Theme <span id="d3ThemeLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="d3ThemeMenu">
+        <div class="theme-dd-item" onclick="toggleTabTheme('d3','Date Hook',this)"><input type="checkbox">📅 Date Hook</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('d3','Problem Statement',this)"><input type="checkbox">🩺 Problem Stmt</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('d3','Generic',this)"><input type="checkbox">💬 Generic</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('d3','Social Proof',this)"><input type="checkbox">⭐ Social Proof</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('d3','AI Creative',this)"><input type="checkbox">🤖 AI Creative</div>
+      </div>
+    </div>
+    <select class="fi-sel" onchange="d3S.d3f=this.value;d3S.p=1;renderD3()">
+      <option value="">D3 — All</option><option>Green</option><option>Yellow</option><option>Red</option>
+    </select>
+    <select class="fi-sel" onchange="d3S.d7f=this.value;d3S.p=1;renderD3()">
+      <option value="">D7 — All</option><option>Green</option><option>Yellow</option><option>Red</option>
+    </select>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <button class="fi" id="d3BtnActive" onclick="toggleTabStatus(d3S,'active','d3BtnActive','d3BtnPaused',renderD3)">● Active</button>
+    <button class="fi" id="d3BtnPaused" onclick="toggleTabStatus(d3S,'paused','d3BtnActive','d3BtnPaused',renderD3)">⏸ Paused</button>
+    <span class="cnt" id="d3-cnt"></span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="dtbl"><thead><tr>
+      <th onclick="sortD('key')">Creative</th>
+      <th onclick="sortD('theme')">Theme</th>
+      <th onclick="sortD('age')" class="srt">Age</th>
+      <th>Status</th>
+      <th>CPL</th>
+      <th onclick="sortD('cost_d3_val')">Cost D3 ₹</th><th>D3 Tag</th>
+      <th onclick="sortD('cost_d7_val')">Cost D7 ₹</th><th>D7 Tag</th>
+      <th>ROAS</th>
+      <th onclick="sortD('total_spend')">Spend</th>
+    </tr></thead>
+    <tbody id="d3Body"></tbody></table>
+    <div class="pag" id="d3Pag"></div>
+  </div>
+</div>
+
+<!-- ══════ ROAS ══════ -->
+<div class="panel" id="panel-roas">
+  <div class="filters">
+    <input class="fi-input" type="text" placeholder="Search…" oninput="roS.q=this.value;roS.p=1;renderRo()">
+    <div class="theme-dd-wrap">
+      <button class="theme-dd-btn" id="roThemeBtn" onclick="toggleDD('roThemeMenu','roThemeBtn')">🏷 Theme <span id="roThemeLbl">All</span> ▾</button>
+      <div class="theme-dd-menu" id="roThemeMenu">
+        <div class="theme-dd-item" onclick="toggleTabTheme('ro','Date Hook',this)"><input type="checkbox">📅 Date Hook</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('ro','Problem Statement',this)"><input type="checkbox">🩺 Problem Stmt</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('ro','Generic',this)"><input type="checkbox">💬 Generic</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('ro','Social Proof',this)"><input type="checkbox">⭐ Social Proof</div>
+        <div class="theme-dd-item" onclick="toggleTabTheme('ro','AI Creative',this)"><input type="checkbox">🤖 AI Creative</div>
+      </div>
+    </div>
+    <button class="fi fg" onclick="toggleF(roS,'Green','roas_tag',this,renderRo)">🟢 Green</button>
+    <button class="fi fy" onclick="toggleF(roS,'Yellow','roas_tag',this,renderRo)">🟡 Yellow</button>
+    <button class="fi fr" onclick="toggleF(roS,'Red','roas_tag',this,renderRo)">🔴 Red</button>
+    <span style="color:var(--border2);padding:0 4px">|</span>
+    <button class="fi" id="roBtnActive" onclick="toggleTabStatus(roS,'active','roBtnActive','roBtnPaused',renderRo)">● Active</button>
+    <button class="fi" id="roBtnPaused" onclick="toggleTabStatus(roS,'paused','roBtnActive','roBtnPaused',renderRo)">⏸ Paused</button>
+    <span class="cnt" id="ro-cnt"></span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="dtbl"><thead><tr>
+      <th onclick="sortR('key')">Creative</th>
+      <th onclick="sortR('theme')">Theme</th>
+      <th onclick="sortR('age')" class="srt">Age</th>
+      <th>Status</th>
+      <th>Score</th><th>Confidence</th>
+      <th>CPL</th><th>D3</th><th>D7</th>
+      <th onclick="sortR('roas_val')">ROAS</th><th>Tag</th>
+      <th onclick="sortR('total_spend')">Spend</th>
+    </tr></thead>
+    <tbody id="roBody"></tbody></table>
+    <div class="pag" id="roPag"></div>
+  </div>
+</div>
+
+</div>
+
+<div id="creativePopup" onclick="if(event.target===this)closePopup()">
+  <div class="popup-box">
+    <div class="popup-hdr">
+      <div>
+        <div class="popup-title" id="popupTitle"></div>
+        <div class="popup-sub" id="popupSub"></div>
+      </div>
+      <button class="popup-close" onclick="closePopup()">✕</button>
+    </div>
+    <div class="popup-body" id="popupBody"></div>
+  </div>
+</div>
+
+<div id="global-tt"><div class="tt-label" id="tt-label"></div><div class="tt-id" id="tt-ids"></div></div>
+
+<script>
+const RAW = {"creatives":[{"key":"Kamya(FatBurnAI_2)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(FatBurnAI_2)V1-VideoAd1-23Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-01","cpl_val":16.43,"cpl_tag":"Red","cost_d3_val":93.86,"cost_d3_tag":"Red","cost_d7_val":318.99,"cost_d7_tag":"Red","roas_val":0.09,"roas_tag":"Red","total_spend":5538,"total_leads":337,"is_ai":true,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120241928840020232"]},{"key":"Kamya(AIReview)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(AIReview)V1-VideoAd1-37Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-05-01","cpl_val":43.2,"cpl_tag":"Red","cost_d3_val":82.59,"cost_d3_tag":"Red","cost_d7_val":141.01,"cost_d7_tag":"Red","roas_val":0.25,"roas_tag":"Red","total_spend":5616,"total_leads":130,"is_ai":true,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120241928943920232"]},{"key":"Kamya(AreAajNhi)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(AreAajNhi)V1-VideoAd1-29Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Social Proof","dh_phase":null,"paused_from":null,"cpl_val":22.42,"cpl_tag":"Red","cost_d3_val":61.69,"cost_d3_tag":"Red","cost_d7_val":120.58,"cost_d7_tag":"Red","roas_val":1.53,"roas_tag":"Yellow","total_spend":19659,"total_leads":871,"is_ai":false,"health_score":11,"confidence":"Medium","action":"Pause","utm_ids":["120241928993600232"]},{"key":"Kamya(13AprilSe_New)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(13AprilSe_New)V1-VideoAd1-18Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-24","cpl_val":6.77,"cpl_tag":"Green","cost_d3_val":22.37,"cost_d3_tag":"Green","cost_d7_val":52.88,"cost_d7_tag":"Green","roas_val":1.79,"roas_tag":"Yellow","total_spend":56262,"total_leads":8313,"is_ai":false,"health_score":100,"confidence":"High","action":"Historical","utm_ids":["120241930993850232"]},{"key":"Kamya(13April_2ndAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(13April_2ndAI)V1-VideoAd3-27Sec-30-03-2026","go_live":"2026-04-07","age":56,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-21","cpl_val":16.03,"cpl_tag":"Red","cost_d3_val":43.77,"cost_d3_tag":"Red","cost_d7_val":94.83,"cost_d7_tag":"Yellow","roas_val":0.12,"roas_tag":"Red","total_spend":3414,"total_leads":213,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120241931310180232"]},{"key":"Kamya(13April_1stAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(13April_1stAI)V1-VideoAd4-18Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-26","cpl_val":11.92,"cpl_tag":"Yellow","cost_d3_val":35.86,"cost_d3_tag":"Yellow","cost_d7_val":75.97,"cost_d7_tag":"Yellow","roas_val":0.96,"roas_tag":"Red","total_spend":4482,"total_leads":376,"is_ai":true,"health_score":50,"confidence":"Low","action":"Historical","utm_ids":["120241931397360232"]},{"key":"Kamya(13AprilSe_NewMumbai)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(13AprilSe_NewMumbai)V1-VideoAd1-18Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-19","cpl_val":20.89,"cpl_tag":"Red","cost_d3_val":38.14,"cost_d3_tag":"Red","cost_d7_val":54.61,"cost_d7_tag":"Green","roas_val":0.0,"roas_tag":"Red","total_spend":2403,"total_leads":115,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120241931443340232"]},{"key":"Kamya(KapadeTight)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(KapadeTight)V1-VideoAd1-20Sec-07-04-2026","go_live":"2026-04-07","age":56,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-01","cpl_val":23.18,"cpl_tag":"Red","cost_d3_val":57.11,"cost_d3_tag":"Red","cost_d7_val":104.47,"cost_d7_tag":"Red","roas_val":0.96,"roas_tag":"Red","total_spend":5540,"total_leads":239,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120241933020150232"]},{"key":"Kamya(PeriodsNahiAaRahe)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(PeriodsNahiAaRahe)V1-VideoAd1-30Sec-08-04-2026","go_live":"2026-04-08","age":55,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":11.81,"cpl_tag":"Yellow","cost_d3_val":35.47,"cost_d3_tag":"Yellow","cost_d7_val":103.34,"cost_d7_tag":"Red","roas_val":1.23,"roas_tag":"Yellow","total_spend":55258,"total_leads":4878,"is_ai":false,"health_score":40,"confidence":"High","action":"Pause","utm_ids":["120242000197710232","120242041250270232"]},{"key":"Kamya(SeediaChadteHi)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(SeediaChadteHi)V1-VideoAd1-20Sec-08-04-2026","go_live":"2026-04-08","age":55,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-06-01","cpl_val":26.79,"cpl_tag":"Red","cost_d3_val":57.52,"cost_d3_tag":"Red","cost_d7_val":98.91,"cost_d7_tag":"Red","roas_val":1.9,"roas_tag":"Green","total_spend":33188,"total_leads":1112,"is_ai":false,"health_score":29,"confidence":"High","action":"Pause","utm_ids":["120242000388020232"]},{"key":"Kamya(HairFall)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(HairFall)V1-VideoAd1-27Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-18","cpl_val":26.98,"cpl_tag":"Red","cost_d3_val":60.71,"cost_d3_tag":"Red","cost_d7_val":95.84,"cost_d7_tag":"Red","roas_val":0.18,"roas_tag":"Red","total_spend":5636,"total_leads":179,"is_ai":true,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242036933150232"]},{"key":"Kamya(MondaySeShuru)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(MondaySeShuru)V1-VideoAd1-18Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":10.98,"cpl_tag":"Yellow","cost_d3_val":32.46,"cost_d3_tag":"Green","cost_d7_val":83.41,"cost_d7_tag":"Yellow","roas_val":0.25,"roas_tag":"Red","total_spend":23745,"total_leads":1964,"is_ai":false,"health_score":48,"confidence":"High","action":"Pause","utm_ids":["120242038512210232"]},{"key":"Kamya(YogaStartKiya)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(YogaStartKiya)V1-VideoAd1-25Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-20","cpl_val":14.38,"cpl_tag":"Yellow","cost_d3_val":43.83,"cost_d3_tag":"Red","cost_d7_val":114.59,"cost_d7_tag":"Red","roas_val":0.37,"roas_tag":"Red","total_spend":11358,"total_leads":832,"is_ai":false,"health_score":16,"confidence":"Medium","action":"Pause","utm_ids":["120242039407780232"]},{"key":"Kamya(NeckPain)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(NeckPain)V1-VideoAd1-27Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-20","cpl_val":21.16,"cpl_tag":"Red","cost_d3_val":44.1,"cost_d3_tag":"Red","cost_d7_val":82.67,"cost_d7_tag":"Yellow","roas_val":1.19,"roas_tag":"Red","total_spend":13450,"total_leads":718,"is_ai":true,"health_score":11,"confidence":"Medium","action":"Pause","utm_ids":["120242040012650232"]},{"key":"(FatAiDiet)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-(FatAiDiet)V1-VideoAd1-25Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-04-29","cpl_val":37.4,"cpl_tag":"Red","cost_d3_val":119.48,"cost_d3_tag":"Red","cost_d7_val":195.51,"cost_d7_tag":"Red","roas_val":0.36,"roas_tag":"Red","total_spend":4301,"total_leads":115,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242040388250232"]},{"key":"Kamya(Weightgainorweightloss)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Weightgainorweightloss)V1-VideoAd1-25Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":10.05,"cpl_tag":"Yellow","cost_d3_val":35.34,"cost_d3_tag":"Yellow","cost_d7_val":91.07,"cost_d7_tag":"Yellow","roas_val":1.99,"roas_tag":"Green","total_spend":38438,"total_leads":3161,"is_ai":true,"health_score":64,"confidence":"High","action":"Watch","utm_ids":["120242040955960232"]},{"key":"Kamya(14lakhsejydalog)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(14lakhsejydalog)V1-VideoAd1-22Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-02","cpl_val":10.2,"cpl_tag":"Yellow","cost_d3_val":22.92,"cost_d3_tag":"Green","cost_d7_val":42.86,"cost_d7_tag":"Green","roas_val":1.9,"roas_tag":"Green","total_spend":6877,"total_leads":674,"is_ai":false,"health_score":84,"confidence":"Medium","action":"Scale","utm_ids":["120242041353150232"]},{"key":"Kamya(Agaraapbhiyahisochteho)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Agaraapbhiyahisochteho)V1-VideoAd1-26Sec-09-04-2026","go_live":"2026-04-09","age":54,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-07","cpl_val":16.44,"cpl_tag":"Red","cost_d3_val":31.63,"cost_d3_tag":"Green","cost_d7_val":55.06,"cost_d7_tag":"Green","roas_val":1.22,"roas_tag":"Yellow","total_spend":6295,"total_leads":383,"is_ai":false,"health_score":58,"confidence":"Medium","action":"Watch","utm_ids":["120242041711460232"]},{"key":"StaticAd1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Dhurandhar2Baccha-StaticAd1-NA-13-04-2026","go_live":"2026-04-14","age":49,"theme":"Generic","dh_phase":null,"paused_from":"2026-04-24","cpl_val":77.41,"cpl_tag":"Red","cost_d3_val":129.01,"cost_d3_tag":"Red","cost_d7_val":193.51,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":387,"total_leads":5,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242241185130232"]},{"key":"Kamya(20AprilSe_New)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(20AprilSe_New)V1-VideoAd1-18Sec-13-04-2026","go_live":"2026-04-13","age":50,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-30","cpl_val":8.23,"cpl_tag":"Green","cost_d3_val":25.49,"cost_d3_tag":"Green","cost_d7_val":64.26,"cost_d7_tag":"Green","roas_val":1.18,"roas_tag":"Red","total_spend":19728,"total_leads":2397,"is_ai":false,"health_score":100,"confidence":"Medium","action":"Historical","utm_ids":["120242270490660232"]},{"key":"Kamya(20AprilSe_Mumbai)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(20AprilSe_Mumbai)V1-VideoAd1-25Sec-13-04-2026","go_live":"2026-04-13","age":50,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-30","cpl_val":85.93,"cpl_tag":"Red","cost_d3_val":286.44,"cost_d3_tag":"Red","cost_d7_val":1288.97,"cost_d7_tag":"Red","roas_val":0.16,"roas_tag":"Red","total_spend":2578,"total_leads":30,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120242272735680232"]},{"key":"Kamya(20April_2ndAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(20April_2ndAI)V1-VideoAd4-27Sec-13-04-2026","go_live":"2026-04-13","age":50,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-04-30","cpl_val":10.54,"cpl_tag":"Yellow","cost_d3_val":27.6,"cost_d3_tag":"Green","cost_d7_val":57.92,"cost_d7_tag":"Green","roas_val":2.13,"roas_tag":"Green","total_spend":4112,"total_leads":390,"is_ai":true,"health_score":50,"confidence":"Low","action":"Historical","utm_ids":["120242272981210232"]},{"key":"Brain_AI_1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Brain_AI_1-VideoAd1-30Sec-16-04-2026","go_live":"2026-04-17","age":46,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-04-28","cpl_val":24.66,"cpl_tag":"Red","cost_d3_val":135.63,"cost_d3_tag":"Red","cost_d7_val":135.63,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":271,"total_leads":11,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242443451040232"]},{"key":"Kamya(AgarYeh14DinKaChalleng_AI_Plane3Sec)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(AgarYeh14DinKaChalleng_AI_Plane3Sec)V1-VideoAd1-27Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"AI Creative","dh_phase":null,"paused_from":"2026-04-29","cpl_val":28.15,"cpl_tag":"Red","cost_d3_val":49.68,"cost_d3_tag":"Red","cost_d7_val":84.46,"cost_d7_tag":"Yellow","roas_val":0.0,"roas_tag":"Red","total_spend":845,"total_leads":30,"is_ai":true,"health_score":12,"confidence":"Low","action":"Pause","utm_ids":["120242491145380232"]},{"key":"Kamya(DailyYoga_2_AI_Sket3Sec)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(DailyYoga_2_AI_Sket3Sec)V1-VideoAd1-41Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"AI Creative","dh_phase":null,"paused_from":"2026-04-25","cpl_val":41.75,"cpl_tag":"Red","cost_d3_val":93.94,"cost_d3_tag":"Red","cost_d7_val":187.89,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":376,"total_leads":9,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242495353160232"]},{"key":"Kamya(AgarAjjNahiTohKab_AI_Bike3Sec)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(AgarAjjNahiTohKab_AI_Bike3Sec)V1-VideoAd1-29Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"AI Creative","dh_phase":null,"paused_from":"2026-05-01","cpl_val":44.06,"cpl_tag":"Red","cost_d3_val":107.27,"cost_d3_tag":"Red","cost_d7_val":246.72,"cost_d7_tag":"Red","roas_val":0.17,"roas_tag":"Red","total_spend":2467,"total_leads":56,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242499151040232"]},{"key":"ITWork_AI_1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-ITWork_AI_1-VideoAd1-31Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"AI Creative","dh_phase":null,"paused_from":"2026-04-24","cpl_val":94.28,"cpl_tag":"Red","cost_d3_val":188.56,"cost_d3_tag":"Red","cost_d7_val":null,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":377,"total_leads":4,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242531904580232"]},{"key":"Kamya(IsMondaySe)V2","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(IsMondaySe)V2-VideoAd1-18Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"Generic","dh_phase":null,"paused_from":"2026-04-28","cpl_val":14.13,"cpl_tag":"Yellow","cost_d3_val":35.52,"cost_d3_tag":"Yellow","cost_d7_val":82.88,"cost_d7_tag":"Yellow","roas_val":0.0,"roas_tag":"Red","total_spend":1243,"total_leads":88,"is_ai":false,"health_score":44,"confidence":"Low","action":"Pause","utm_ids":["120242532255420232"]},{"key":"Kamya(KalSeStartKarunga)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(KalSeStartKarunga)V1-VideoAd1-26Sec-17-04-2026","go_live":"2026-04-17","age":46,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-20","cpl_val":34.8,"cpl_tag":"Red","cost_d3_val":76.93,"cost_d3_tag":"Red","cost_d7_val":108.66,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":4120,"total_leads":148,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242532899580232","120242720228280232","120243306081200232"]},{"key":"Kamya(27April_2ndAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(27April_2ndAI)V1-VideoAd6-18Sec-13-04-2026","go_live":"2026-04-18","age":45,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-06","cpl_val":8.95,"cpl_tag":"Green","cost_d3_val":19.8,"cost_d3_tag":"Green","cost_d7_val":38.12,"cost_d7_tag":"Green","roas_val":2.67,"roas_tag":"Green","total_spend":9149,"total_leads":1022,"is_ai":true,"health_score":100,"confidence":"Medium","action":"Historical","utm_ids":["120242592270800232"]},{"key":"Kamya(BeginnerHoYaaYeNhi)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(BeginnerHoYaaYeNhi)V1-VideoAd1-25Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":25.85,"cpl_tag":"Red","cost_d3_val":61.54,"cost_d3_tag":"Red","cost_d7_val":124.57,"cost_d7_tag":"Red","roas_val":1.07,"roas_tag":"Red","total_spend":10022,"total_leads":422,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242646735770232"]},{"key":"Kamya(Roz10MinYoga)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(Roz10MinYoga)V1-VideoAd1-26Sec-20-04-2026","go_live":"2026-05-30","age":3,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":8.03,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":1189,"total_leads":148,"is_ai":false,"health_score":100,"confidence":"Low","action":"Watch","utm_ids":["120242646985020232"]},{"key":"Kamya(PcosThyroidBP)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(PcosThyroidBP)V1-VideoAd1-30Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":8.32,"cpl_tag":"Green","cost_d3_val":28.31,"cost_d3_tag":"Green","cost_d7_val":75.41,"cost_d7_tag":"Yellow","roas_val":1.23,"roas_tag":"Yellow","total_spend":76565,"total_leads":8342,"is_ai":false,"health_score":76,"confidence":"High","action":"Scale","utm_ids":["120242647067910232"]},{"key":"Kamya(ASMR_Roj10MinYoga)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(ASMR_Roj10MinYoga)V1-VideoAd1-26Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Generic","dh_phase":null,"paused_from":"2026-04-29","cpl_val":7.55,"cpl_tag":"Green","cost_d3_val":36.24,"cost_d3_tag":"Yellow","cost_d7_val":90.6,"cost_d7_tag":"Yellow","roas_val":0.0,"roas_tag":"Red","total_spend":544,"total_leads":72,"is_ai":false,"health_score":62,"confidence":"Low","action":"Watch","utm_ids":["120242657012390232"]},{"key":"Kamya(ASMR_BPStressThyroid)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(ASMR_BPStressThyroid)V1-VideoAd1-24Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-04-29","cpl_val":21.36,"cpl_tag":"Red","cost_d3_val":70.19,"cost_d3_tag":"Red","cost_d7_val":122.84,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":491,"total_leads":23,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242657467310232"]},{"key":"Kamya(Review_TohHarBar)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_TohHarBar)V1-VideoAd1-37Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-05-18","cpl_val":30.22,"cpl_tag":"Red","cost_d3_val":75.76,"cost_d3_tag":"Red","cost_d7_val":149.58,"cost_d7_tag":"Red","roas_val":1.07,"roas_tag":"Red","total_spend":5537,"total_leads":175,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242677012060232"]},{"key":"Kamya(Review_ChangeWalking)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_ChangeWalking)V1-VideoAd1-45Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-04-23","cpl_val":45.4,"cpl_tag":"Red","cost_d3_val":181.61,"cost_d3_tag":"Red","cost_d7_val":363.21,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":363,"total_leads":8,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120242677069110232"]},{"key":"Kamya(Review_IntniAcidity)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_IntniAcidity)V1-VideoAd1-28Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-04-29","cpl_val":16.99,"cpl_tag":"Red","cost_d3_val":113.27,"cost_d3_tag":"Red","cost_d7_val":339.82,"cost_d7_tag":"Red","roas_val":7.73,"roas_tag":"Green","total_spend":340,"total_leads":20,"is_ai":false,"health_score":12,"confidence":"Low","action":"Pause","utm_ids":["120242677120090232"]},{"key":"Kamya(Review_MeraThyroid)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_MeraThyroid)V1-VideoAd1-25Sec-17-04-2026","go_live":"2026-04-20","age":43,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-20","cpl_val":28.49,"cpl_tag":"Red","cost_d3_val":57.58,"cost_d3_tag":"Red","cost_d7_val":108.05,"cost_d7_tag":"Red","roas_val":0.11,"roas_tag":"Red","total_spend":5794,"total_leads":201,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242677183270232"]},{"key":"Kamya(Review_EkEkUngli)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Review_EkEkUngli)V1-VideoAd1-33Sec-20-04-2026","go_live":"2026-04-20","age":43,"theme":"Social Proof","dh_phase":null,"paused_from":"2026-05-20","cpl_val":26.36,"cpl_tag":"Red","cost_d3_val":52.21,"cost_d3_tag":"Red","cost_d7_val":90.39,"cost_d7_tag":"Yellow","roas_val":0.64,"roas_tag":"Red","total_spend":5778,"total_leads":216,"is_ai":false,"health_score":11,"confidence":"Medium","action":"Pause","utm_ids":["120242677247680232"]},{"key":"Kamya(SaraDinAcidity)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(SaraDinAcidity)V1-VideoAd1-34Sec-21-04-2026","go_live":"2026-04-21","age":42,"theme":"Problem Statement","dh_phase":null,"paused_from":"2026-05-20","cpl_val":37.54,"cpl_tag":"Red","cost_d3_val":75.79,"cost_d3_tag":"Red","cost_d7_val":125.45,"cost_d7_tag":"Red","roas_val":0.88,"roas_tag":"Red","total_spend":8421,"total_leads":228,"is_ai":false,"health_score":0,"confidence":"Medium","action":"Pause","utm_ids":["120242719570790232","120243156999050232","120243306076860232"]},{"key":"Kamya(27AprilSeShuru)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(27AprilSeShuru)V1-VideoAd1-25Sec-21-04-2026-DCO","go_live":"2026-04-21","age":42,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-02","cpl_val":46.87,"cpl_tag":"Red","cost_d3_val":140.6,"cost_d3_tag":"Red","cost_d7_val":193.32,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":1547,"total_leads":33,"is_ai":false,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120242720353660232"]},{"key":"Kamya(4MaySeShuru)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(4MaySeShuru)V1-VideoAd1-25Sec-24-04-2026","go_live":"2026-04-24","age":39,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-15","cpl_val":5.93,"cpl_tag":"Green","cost_d3_val":19.24,"cost_d3_tag":"Green","cost_d7_val":47.17,"cost_d7_tag":"Green","roas_val":1.88,"roas_tag":"Green","total_spend":47780,"total_leads":8056,"is_ai":false,"health_score":100,"confidence":"High","action":"Historical","utm_ids":["120242931918390232"]},{"key":"Kamya(14DayParents_BPThyroid)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(14DayParents_BPThyroid)V1-VideoAd1-28Sec-27-04-2026","go_live":"2026-04-27","age":36,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":10.19,"cpl_tag":"Yellow","cost_d3_val":24.6,"cost_d3_tag":"Green","cost_d7_val":35.09,"cost_d7_tag":"Green","roas_val":1.27,"roas_tag":"Yellow","total_spend":39563,"total_leads":3728,"is_ai":false,"health_score":71,"confidence":"High","action":"Scale","utm_ids":["120243068195670232"]},{"key":"Kamya(4MaySeShuru_2ndAI)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(4MaySeShuru_2ndAI)V1-VideoAd1-27Sec-27-04-2026","go_live":"2026-04-27","age":36,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-20","cpl_val":11.56,"cpl_tag":"Yellow","cost_d3_val":31.64,"cost_d3_tag":"Green","cost_d7_val":63.89,"cost_d7_tag":"Green","roas_val":1.62,"roas_tag":"Yellow","total_spend":16514,"total_leads":1428,"is_ai":true,"health_score":50,"confidence":"Medium","action":"Historical","utm_ids":["120243068298660232","120243133382780232"]},{"key":"Kamya(4MaySeShuru_NewAI)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(4MaySeShuru_NewAI)V1-VideoAd1-20Sec-27-04-2026","go_live":"2026-04-27","age":36,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-06-01","cpl_val":14.36,"cpl_tag":"Yellow","cost_d3_val":35.89,"cost_d3_tag":"Yellow","cost_d7_val":77.83,"cost_d7_tag":"Yellow","roas_val":2.25,"roas_tag":"Green","total_spend":14331,"total_leads":1046,"is_ai":true,"health_score":50,"confidence":"Medium","action":"Historical","utm_ids":["120243068400350232","120243133652190232"]},{"key":"Kamya(4MaySeShuru_MumAI)V1","ad_name":"KW-Meta-Leads-Website-BroadTargeting-CR-Kamya(4MaySeShuru_MumAI)V1-VideoAd8-25Sec-28-04-2026","go_live":"2026-04-28","age":35,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-10","cpl_val":33.82,"cpl_tag":"Red","cost_d3_val":33.82,"cost_d3_tag":"Yellow","cost_d7_val":101.45,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":101,"total_leads":3,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243133579240232"]},{"key":"Kamya(HarBarBolteHo)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(HarBarBolteHo)V1-VideoAd1-22Sec-30-04-2026-Reedit","go_live":"2026-05-01","age":32,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-20","cpl_val":21.44,"cpl_tag":"Red","cost_d3_val":57.29,"cost_d3_tag":"Red","cost_d7_val":124.82,"cost_d7_tag":"Red","roas_val":0.0,"roas_tag":"Red","total_spend":3495,"total_leads":163,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120243306151020232"]},{"key":"Kamya(11MaySe_New)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(11MaySe_New)V1-VideoAd1-25Sec-01-05-2026","go_live":"2026-05-01","age":32,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-25","cpl_val":9.86,"cpl_tag":"Green","cost_d3_val":28.32,"cost_d3_tag":"Green","cost_d7_val":59.56,"cost_d7_tag":"Green","roas_val":0.24,"roas_tag":"Red","total_spend":25407,"total_leads":2577,"is_ai":false,"health_score":100,"confidence":"High","action":"Historical","utm_ids":["120243344214730232"]},{"key":"Kamya(IsMondaySe_New)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(IsMondaySe_New)V1-VideoAd1-25Sec-01-05-2026","go_live":"2026-05-01","age":32,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":8.68,"cpl_tag":"Green","cost_d3_val":25.15,"cost_d3_tag":"Green","cost_d7_val":50.26,"cost_d7_tag":"Green","roas_val":0.48,"roas_tag":"Red","total_spend":90390,"total_leads":10666,"is_ai":false,"health_score":71,"confidence":"High","action":"Scale","utm_ids":["120243344221270232"]},{"key":"Kamya(11MaySe_AI3)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(11MaySe_AI3)V1-VideoAd1-20Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-20","cpl_val":17.42,"cpl_tag":"Red","cost_d3_val":53.34,"cost_d3_tag":"Red","cost_d7_val":121.93,"cost_d7_tag":"Red","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":3414,"total_leads":196,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243549876750232"]},{"key":"Kamya(11MaySe_AI2)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(11MaySe_AI2)V1-VideoAd1-27Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-20","cpl_val":16.23,"cpl_tag":"Red","cost_d3_val":41.24,"cost_d3_tag":"Red","cost_d7_val":84.84,"cost_d7_tag":"Yellow","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":2970,"total_leads":183,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243549924910232"]},{"key":"Kamya(11May_AI_Mumbai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(11May_AI_Mumbai)V1-VideoAd1-25Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-20","cpl_val":20.45,"cpl_tag":"Red","cost_d3_val":41.25,"cost_d3_tag":"Red","cost_d7_val":69.14,"cost_d7_tag":"Yellow","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4909,"total_leads":240,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243549925280232"]},{"key":"Kamya(HealthKoIngnore)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(HealthKoIngnore)V1-VideoAd1-24Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Generic","dh_phase":null,"paused_from":"2026-06-01","cpl_val":19.49,"cpl_tag":"Red","cost_d3_val":46.81,"cost_d3_tag":"Red","cost_d7_val":88.81,"cost_d7_tag":"Yellow","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":5205,"total_leads":267,"is_ai":false,"health_score":12,"confidence":"Medium","action":"Pause","utm_ids":["120243574576330232"]},{"key":"Kamya(Insta_1_Ghanta)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Insta_1_Ghanta)V1-VideoAd1-26Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-31","cpl_val":21.27,"cpl_tag":"Red","cost_d3_val":48.49,"cost_d3_tag":"Red","cost_d7_val":82.27,"cost_d7_tag":"Yellow","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":7231,"total_leads":340,"is_ai":false,"health_score":12,"confidence":"Medium","action":"Pause","utm_ids":["120243574614950232"]},{"key":"Kamya(KyaAapJanateHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(KyaAapJanateHai)V1-VideoAd1-28Sec-06-05-2026","go_live":"2026-05-06","age":27,"theme":"Generic","dh_phase":null,"paused_from":"2026-05-26","cpl_val":35.29,"cpl_tag":"Red","cost_d3_val":69.55,"cost_d3_tag":"Red","cost_d7_val":123.28,"cost_d7_tag":"Red","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4799,"total_leads":136,"is_ai":true,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120243574617100232"]},{"key":"Kamya(18MaySeShuruHoRahaHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(18MaySeShuruHoRahaHai)V1-VideoAd1-19Sec-12-05-2026","go_live":"2026-05-13","age":20,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-31","cpl_val":9.38,"cpl_tag":"Green","cost_d3_val":29.5,"cost_d3_tag":"Green","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":16925,"total_leads":1805,"is_ai":true,"health_score":100,"confidence":"Medium","action":"Historical","utm_ids":["120243984503230232"]},{"key":"Kamya(18MaySeShuruHoRahaHai2)V2","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(18MaySeShuruHoRahaHai2)V2-VideoAd1-19Sec-12-05-2026","go_live":"2026-05-13","age":20,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-06-01","cpl_val":10.42,"cpl_tag":"Yellow","cost_d3_val":33.21,"cost_d3_tag":"Yellow","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":14875,"total_leads":1428,"is_ai":true,"health_score":50,"confidence":"Medium","action":"Historical","utm_ids":["120243985079110232"]},{"key":"Kamya(18MaySe_NewAIMumbai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(18MaySe_NewAIMumbai)V1-VideoAd1-19Sec-12-05-2026","go_live":"2026-05-13","age":20,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-27","cpl_val":16.28,"cpl_tag":"Red","cost_d3_val":39.45,"cost_d3_tag":"Red","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4379,"total_leads":269,"is_ai":true,"health_score":0,"confidence":"Low","action":"Historical","utm_ids":["120243985209380232"]},{"key":"Kamya(18MaySeShuruHoRahaHai_AI)AI","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(18MaySeShuruHoRahaHai_AI)AI-VideoAd1-24Sec-12-05-2026","go_live":"2026-05-13","age":20,"theme":"Date Hook","dh_phase":"historical","paused_from":"2026-05-31","cpl_val":9.53,"cpl_tag":"Green","cost_d3_val":34.01,"cost_d3_tag":"Yellow","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":7494,"total_leads":786,"is_ai":true,"health_score":100,"confidence":"Medium","action":"Historical","utm_ids":["120243985447720232"]},{"key":"Kamya(25MaySeShuruHoRahaHai_AI)AI","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(25MaySeShuruHoRahaHai_AI)AI-VideoAd1-29Sec-19-05-2026","go_live":"2026-05-19","age":14,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":9.33,"cpl_tag":"Green","cost_d3_val":29.59,"cost_d3_tag":"Green","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":18138,"total_leads":1945,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244442490630232"]},{"key":"Kamya(25MaySeShuruHoRahaHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(25MaySeShuruHoRahaHai)V1-VideoAd1-19Sec-19-05-2026","go_live":"2026-05-19","age":14,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":9.63,"cpl_tag":"Green","cost_d3_val":28.74,"cost_d3_tag":"Green","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":13342,"total_leads":1386,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244444045300232"]},{"key":"Kamya(AiCreativeStorytelling)AI","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(AiCreativeStorytelling)AI-VideoAd1-16Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"AI Creative","dh_phase":null,"paused_from":null,"cpl_val":13.9,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4698,"total_leads":338,"is_ai":true,"health_score":50,"confidence":"Low","action":"Maturing","utm_ids":["120244500018030232"]},{"key":"Kamya(Testimonial)V2","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Testimonial)V2-VideoAd1-23Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Social Proof","dh_phase":null,"paused_from":null,"cpl_val":37.8,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4612,"total_leads":122,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120244501265940232"]},{"key":"Kamya(FatAIV4)AI","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(FatAIV4)AI-VideoAd1-31Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":14.97,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4595,"total_leads":307,"is_ai":true,"health_score":50,"confidence":"Low","action":"Maturing","utm_ids":["120244501266150232"]},{"key":"Kamya(Testimonial)V3","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Testimonial)V3-VideoAd1-21Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Social Proof","dh_phase":null,"paused_from":null,"cpl_val":28.22,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4572,"total_leads":162,"is_ai":false,"health_score":0,"confidence":"Low","action":"Pause","utm_ids":["120244504135570232"]},{"key":"(GharKaKaamKrteHoorSabKaDhayaanRakhteHo)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-(GharKaKaamKrteHoorSabKaDhayaanRakhteHo)V1-VideoAd1-24Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":9.94,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":9777,"total_leads":984,"is_ai":false,"health_score":100,"confidence":"Medium","action":"Watch","utm_ids":["120244504701620232"]},{"key":"Kamya(25MaySeShuruHoRahaHai)V3","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(25MaySeShuruHoRahaHai)V3-VideoAd1-25Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Date Hook","dh_phase":"wind_down","paused_from":"2026-06-01","cpl_val":7.13,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":15587,"total_leads":2186,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244505428100232"]},{"key":"Kamya(25MaySeShuruHoRahaHai)V4","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(25MaySeShuruHoRahaHai)V4-VideoAd1-25Sec-20-05-2026","go_live":"2026-05-20","age":13,"theme":"Date Hook","dh_phase":"wind_down","paused_from":"2026-05-31","cpl_val":22.42,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":1547,"total_leads":69,"is_ai":true,"health_score":10,"confidence":"Low","action":"Wind Down","utm_ids":["120244505730990232"]},{"key":"Kamya(1JunSeShuruHoRahaHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai)V1-VideoAd1-23Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":5.69,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":13827,"total_leads":2429,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244851871740232"]},{"key":"Kamya(1JunSeShuruHoRahaHai_AI)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai_AI)V1-VideoAd1-19Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":7.68,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":9713,"total_leads":1265,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244852119600232"]},{"key":"Kamya(1JunSeShuruHoRahaHai_AI2)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai_AI2)V1-VideoAd1-29Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":7.0,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":14616,"total_leads":2087,"is_ai":true,"health_score":70,"confidence":"Medium","action":"Wind Down","utm_ids":["120244852190830232"]},{"key":"Kamya(1JunSeShuruHoRahaHai_(AI1)","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai_(AI1))V1-VideoAd4-25Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":5.47,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":22284,"total_leads":4075,"is_ai":true,"health_score":70,"confidence":"High","action":"Wind Down","utm_ids":["120244852275820232"]},{"key":"Kamya(1JunSeShuruHoRahaHai_(AI2)","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuruHoRahaHai_(AI2))V1-VideoAd5-25Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":13.06,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":2521,"total_leads":193,"is_ai":true,"health_score":40,"confidence":"Low","action":"Wind Down","utm_ids":["120244852333690232"]},{"key":"Kamya(1JunSeShuru)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuru)V1-VideoAd1-27Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":9.17,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":4357,"total_leads":475,"is_ai":false,"health_score":70,"confidence":"Low","action":"Wind Down","utm_ids":["120244875256190232"]},{"key":"Kamya(1JunSeShuru_21Days)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(1JunSeShuru_21Days)V1-VideoAd1-27Sec-25-05-2026","go_live":"2026-05-25","age":8,"theme":"Date Hook","dh_phase":"wind_down","paused_from":null,"cpl_val":5.14,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":22482,"total_leads":4376,"is_ai":false,"health_score":70,"confidence":"High","action":"Wind Down","utm_ids":["120244892786230232"]},{"key":"Kamya(21DaysExercise)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(21DaysExercise)V1-VideoAd1-47Sec-25-05-2026","go_live":"2026-05-26","age":7,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":7.07,"cpl_tag":"Green","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":2200,"total_leads":311,"is_ai":false,"health_score":100,"confidence":"Low","action":"Watch","utm_ids":["120244952728890232"]},{"key":"Fat_AI_V8","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Fat_AI_V8-VideoAd1-28Sec-29-05-2026","go_live":"2026-05-30","age":3,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":16.3,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":636,"total_leads":39,"is_ai":true,"health_score":0,"confidence":"Low","action":"Maturing","utm_ids":["120245200853620232"]},{"key":"Kamya(Testimonial)V4","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(Testimonial)V4-VideoAd1-19Sec-29-05-2026","go_live":"2026-05-30","age":3,"theme":"Social Proof","dh_phase":null,"paused_from":null,"cpl_val":32.3,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":581,"total_leads":18,"is_ai":false,"health_score":0,"confidence":"Low","action":"Maturing","utm_ids":["120245200854100232"]},{"key":"Kamya(14dayBenefits)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(14dayBenefits)V1-VideoAd1-25Sec-25-05-2026","go_live":"2026-05-30","age":3,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":11.97,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":695,"total_leads":58,"is_ai":false,"health_score":50,"confidence":"Low","action":"Maturing","utm_ids":["120245204457090232"]},{"key":"Kamya(ThakanAnxiety)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(ThakanAnxiety)V1-VideoAd1-27Sec-25-05-2026","go_live":"2026-05-30","age":3,"theme":"Problem Statement","dh_phase":null,"paused_from":null,"cpl_val":20.27,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":689,"total_leads":34,"is_ai":false,"health_score":0,"confidence":"Low","action":"Maturing","utm_ids":["120245204521730232"]},{"key":"Kamya(AapakePass)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(AapakePass)V1-VideoAd1-29Sec-25-05-2026","go_live":"2026-05-30","age":3,"theme":"Generic","dh_phase":null,"paused_from":null,"cpl_val":13.85,"cpl_tag":"Yellow","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":692,"total_leads":50,"is_ai":false,"health_score":50,"confidence":"Low","action":"Maturing","utm_ids":["120245204536780232"]},{"key":"Kamya(8JunSeShuruHoRahaHai)V1","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(8JunSeShuruHoRahaHai)V1-VideoAd1-23Sec-01-06-2026","go_live":"2026-06-01","age":1,"theme":"Date Hook","dh_phase":"too_early","paused_from":null,"cpl_val":17.06,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":358,"total_leads":21,"is_ai":true,"health_score":50,"confidence":"Low","action":"Too Early","utm_ids":["120245436659140232"]},{"key":"Kamya(8JunSeShuruHoRahaHai)","ad_name":"KW-Meta-Sales-Website-BroadTargeting-CR-Kamya(8JunSeShuruHoRahaHai)_(AI1))V1-VideoAd1-25Sec-01-06-2026","go_live":"2026-06-01","age":1,"theme":"Date Hook","dh_phase":"too_early","paused_from":null,"cpl_val":30.45,"cpl_tag":"Red","cost_d3_val":null,"cost_d3_tag":"Not Eligible Yet","cost_d7_val":null,"cost_d7_tag":"Not Eligible Yet","roas_val":null,"roas_tag":"Not Eligible Yet","total_spend":1918,"total_leads":63,"is_ai":true,"health_score":50,"confidence":"Low","action":"Too Early","utm_ids":["120245437025690232","120245437414570232","120245439521960232","120245440002980232"]}],"scorecard":{"current":[{"metric":"CPL","total":2,"green":0,"yellow":0,"red":2},{"metric":"Cost D3","total":2,"green":0,"yellow":0,"red":0},{"metric":"Cost D7","total":2,"green":0,"yellow":0,"red":0},{"metric":"ROAS","total":2,"green":0,"yellow":0,"red":0}],"prev1":[{"metric":"CPL","total":36,"green":16,"yellow":6,"red":14},{"metric":"Cost D3","total":36,"green":5,"yellow":2,"red":8},{"metric":"Cost D7","total":36,"green":2,"yellow":4,"red":3},{"metric":"ROAS","total":36,"green":0,"yellow":0,"red":3}],"prev2":[{"metric":"CPL","total":46,"green":6,"yellow":11,"red":29},{"metric":"Cost D3","total":46,"green":11,"yellow":7,"red":28},{"metric":"Cost D7","total":46,"green":10,"yellow":11,"red":25},{"metric":"ROAS","total":46,"green":8,"yellow":7,"red":31}],"cur_month":"2026-06","prev1_month":"2026-05","prev2_month":"2026-04"},"theme_summary":{"Problem Statement":{"count":16,"avg_score":20,"green_rate":6},"Social Proof":{"count":9,"avg_score":6,"green_rate":0},"Date Hook":{"count":34,"avg_score":51,"green_rate":47},"Generic":{"count":20,"avg_score":40,"green_rate":25},"AI Creative":{"count":5,"avg_score":12,"green_rate":0}}};
+
+const C = RAW.creatives;
+const PS = 20;
+let DAILY_DATA = {}; // key → [{date, spend, leads, revenue, d3, d7}] populated on CSV upload
+
+// ── helpers ──
+const tagH = t => {
+  if(!t||t==='Not Eligible Yet') return `<span class="tag tna">N/A</span>`;
+  const m={Green:'tG',Yellow:'tY',Red:'tR'};
+  return `<span class="tag ${m[t]||'tna'}">${t}</span>`;
+};
+const spendH = n => '₹'+(n>=1000?(n/1000).toFixed(0)+'K':n);
+const nameCell = (c, maxLen=28) => {
+  const ids = c.utm_ids ? c.utm_ids : [];
+  const label = `Creative ID${ids.length>1?'s':''}`;
+  const idsDisplay = ids.slice(0,5).join('<br>') + (ids.length>5?`<br>+${ids.length-5} more`:'');
+  const keyEsc = c.key.replace(/'/g,"\\'");
+  return `<div class="cr-tooltip" style="cursor:pointer" onmouseenter="showTT(event,'${label}','${idsDisplay}')" onmouseleave="hideTT()" onclick="openPopup('${keyEsc}')">${c.key.substring(0,maxLen)}${c.is_ai?` <span class="tag tai">AI</span>`:''}</div>`;
+};
+const scorePill = s => `<span class="score-pill ${s>=70?'sp-h':s>=50?'sp-m':'sp-l'}">${s}</span>`;
+const confH = c => `<span class="conf-dot cd${c[0]}"></span><span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:${c==='High'?'var(--green)':c==='Medium'?'var(--yellow)':'var(--text3)'}">${c}</span>`;
+const themeH = (t,dh) => `<span class="tag ttheme${dh?'':' ev'}">${t}</span>`;
+
+const ACTION_COLOR = {
+  'Scale + Relaunch':'c-scale','Watch':'c-watch','Drop Angle':'c-drop',
+  'Wind Down':'c-wind','Too Early':'c-early','Historical':'c-hist',
+  'Scale':'c-ev-scale','Maturing':'c-ev-mat','Pause':'c-ev-pause',
+};
+const ACTION_ICON = {
+  'Scale + Relaunch':'🚀','Watch':'👁','Drop Angle':'🔴',
+  'Wind Down':'🌅','Too Early':'⏳','Historical':'📁',
+  'Scale':'⬆','Maturing':'⏳','Pause':'⏸',
+};
+const actionH = a => `<span class="${ACTION_COLOR[a]||''}" style="font-weight:700">${ACTION_ICON[a]||''} ${a}</span>`;
+
+// ── OVERVIEW ──
+function initOverview(){
+  // Date Hook board
+  const dhActions = ['Scale + Relaunch','Watch','Wind Down','Drop Angle','Too Early'];
+  const dhColors  = ['c-scale','c-watch','c-wind','c-drop','c-early'];
+  const dhAll = C.filter(c=>c.theme==='Date Hook');
+  const dhActive  = dhAll.filter(c=>!c.paused_from&&c.dh_phase!=='historical');
+  const dhHistorical = dhAll.filter(c=>c.dh_phase==='historical'&&!c.paused_from); // active + age > 14d only
+  const noteEl = document.getElementById('dhTotalNote');
+  if(noteEl) noteEl.textContent = `${dhAll.filter(c=>!c.paused_from).length} active · ${dhAll.filter(c=>!!c.paused_from).length} paused — ${dhAll.length} total`;
+  const dhBuckets = {};
+  dhActions.forEach(a=>dhBuckets[a]=[]);
+  dhActive.forEach(c=>{ if(dhBuckets[c.action]!==undefined) dhBuckets[c.action].push(c); });
+
+  // 5 action columns + 1 historical column
+  const histSorted = dhHistorical.sort((a,b)=>(a.cpl_val||999)-(b.cpl_val||999));
+
+  document.getElementById('dhBoard').innerHTML = dhActions.map((act,i)=>`
+    <div class="ab-col">
+      <div class="ab-col-hdr">
+        <span class="ab-col-title ${dhColors[i]}">${ACTION_ICON[act]} ${act}</span>
+        <span class="ab-count ${dhColors[i]}">${dhBuckets[act].length}</span>
+      </div>
+      ${dhBuckets[act].sort((a,b)=>(a.cpl_val||999)-(b.cpl_val||999)).slice(0,6).map(c=>`
+        <div class="ab-item">
+          <div class="ab-name" title="${c.key}">${c.key.replace(/^Kamya\(|^Kamya\(/,'').replace(/\)V\d+$|\)AI$|AI$/,'').substring(0,28)}</div>
+          <div class="ab-meta">
+            <span style="font-size:11px;font-family:'IBM Plex Mono';color:var(--text);font-weight:600">${c.cpl_val!=null?'₹'+c.cpl_val:'—'}</span>
+            ${tagH(c.cpl_tag)}
+            <span style="font-size:10px;color:var(--text3);font-family:'IBM Plex Mono'">${c.age}d</span>
+            ${c.is_ai?`<span class="tag tai">AI</span>`:''}
+          </div>
+        </div>`).join('')}
+      ${dhBuckets[act].length===0?`<div class="ab-more">None this week</div>`:''}
+      ${dhBuckets[act].length>6?`<div class="ab-more">+${dhBuckets[act].length-6} more</div>`:''}
+    </div>`).join('') + `
+    <div class="ab-col">
+      <div class="ab-col-hdr">
+        <span class="ab-col-title c-hist">📁 Historical</span>
+        <span class="ab-count c-hist">${histSorted.length}</span>
+      </div>
+      ${histSorted.slice(0,6).map(c=>`
+        <div class="ab-item">
+          <div class="ab-name" title="${c.key}">${c.key.replace(/^Kamya\(/,'').replace(/\)V\d+$|\)AI$|AI$/,'').substring(0,28)}</div>
+          <div class="ab-meta">
+            <span style="font-size:11px;font-family:'IBM Plex Mono';color:var(--text);font-weight:600">${c.cpl_val!=null?'₹'+c.cpl_val:'—'}</span>
+            ${tagH(c.cpl_tag)}
+            <span style="font-size:10px;color:var(--text3);font-family:'IBM Plex Mono'">${c.age}d</span>
+            ${c.is_ai?`<span class="tag tai">AI</span>`:''}
+          </div>
+        </div>`).join('')}
+      ${histSorted.length===0?`<div class="ab-more">None</div>`:''}
+      ${histSorted.length>6?`<div class="ab-more">+${histSorted.length-6} more</div>`:''}
+    </div>`;
+
+  // Evergreen board
+  const evActions = ['Scale','Watch','Maturing','Pause'];
+  const evColors  = ['c-ev-scale','c-ev-watch','c-ev-mat','c-ev-pause'];
+  const evActive  = C.filter(c=>c.theme!=='Date Hook'&&!c.paused_from);
+  const evBuckets = {};
+  evActions.forEach(a=>evBuckets[a]=[]);
+  evActive.forEach(c=>{ if(evBuckets[c.action]!==undefined) evBuckets[c.action].push(c); });
+
+  document.getElementById('evBoard').innerHTML = evActions.map((act,i)=>`
+    <div class="ab-col">
+      <div class="ab-col-hdr">
+        <span class="ab-col-title ${evColors[i]}">${ACTION_ICON[act]} ${act}</span>
+        <span class="ab-count ${evColors[i]}">${evBuckets[act].length}</span>
+      </div>
+      ${evBuckets[act].sort((a,b)=>b.health_score-a.health_score).slice(0,6).map(c=>`
+        <div class="ab-item">
+          <div class="ab-name" title="${c.key}">${c.key.replace(/^Kamya\(/,'').replace(/\)V\d+$|\)AI$|AI$/,'').substring(0,28)}</div>
+          <div class="ab-meta">
+            ${scorePill(c.health_score)}
+            <span style="display:flex;align-items:center;gap:3px">${confH(c.confidence)}</span>
+            ${themeH(c.theme,false)}
+          </div>
+          <div class="ab-meta" style="gap:3px;margin-top:2px">
+            ${tagH(c.cpl_tag)}${tagH(c.cost_d3_tag)}${tagH(c.cost_d7_tag)}${tagH(c.roas_tag)}
+            ${c.is_ai?`<span class="tag tai">AI</span>`:''}
+          </div>
+        </div>`).join('')}
+      ${evBuckets[act].length===0?`<div class="ab-more">None</div>`:''}
+      ${evBuckets[act].length>6?`<div class="ab-more">+${evBuckets[act].length-6} more</div>`:''}
+    </div>`).join('');
+
+  // Scorecard — all creatives (historical record, not filtered)
+  const SC = RAW.scorecard;
+
+  // Theme chart — active only
+  const activeC = C.filter(c => !c.paused_from);
+
+  const THEMES_ALL = ['Date Hook','Problem Statement','Generic','Social Proof','AI Creative'];
+  const THEME_ICONS = {'Date Hook':'📅','Problem Statement':'🩺','Generic':'💬','Social Proof':'⭐','AI Creative':'🤖'};
+
+  const months=[
+    {label:'Current',month:SC.cur_month, id:'sc0'},
+    {label:'Month -1',month:SC.prev1_month, id:'sc1'},
+    {label:'Month -2',month:SC.prev2_month, id:'sc2'},
+  ];
+
+  document.getElementById('scorecardGrid').innerHTML = months.map(m=>`
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:9px 12px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+        <span style="font-size:11px;font-weight:700">${m.label}</span>
+        <span style="font-size:10px;color:var(--text3);font-family:'IBM Plex Mono'">${m.month}</span>
+      </div>
+      <table class="sc-table">
+        <thead><tr><th>Metric</th><th>Total</th><th>🟢</th><th>🟡</th><th>🔴</th></tr></thead>
+        <tbody id="scTbody${m.id}">${renderScorecardTable(scorecardForMonth(m.month,''))}</tbody>
+      </table>
+    </div>`).join('');
+
+  // Theme bars
+  const TS = RAW.theme_summary;
+  const tc = {'Date Hook':'#5b9cf6','Problem Statement':'#3ddc84','Generic':'#a78bfa','Social Proof':'#f5c842','AI Creative':'#fb923c'};
+
+  // Recompute theme summary from active creatives only
+  const activeTS = {};
+  activeC.forEach(c => {
+    if(!activeTS[c.theme]) activeTS[c.theme]={count:0,green:0,scores:[]};
+    activeTS[c.theme].count++;
+    activeTS[c.theme].scores.push(c.health_score);
+    if(c.cpl_tag==='Green') activeTS[c.theme].green++;
+  });
+
+  document.getElementById('themeCard').innerHTML = `
+    <div class="card-title">Avg Health Score · Active Creatives by Theme</div>
+    ${Object.entries(activeTS).sort((a,b)=>
+        (b[1].scores.reduce((s,v)=>s+v,0)/b[1].scores.length)-(a[1].scores.reduce((s,v)=>s+v,0)/a[1].scores.length)
+      ).map(([n,v])=>{
+        const avg = Math.round(v.scores.reduce((s,x)=>s+x,0)/v.scores.length);
+        return `<div class="theme-row">
+          <div class="theme-name">${n}</div>
+          <div class="theme-track"><div class="theme-fill" style="width:${avg}%;background:${tc[n]||'#5b9cf6'}"></div></div>
+          <div class="theme-val">${avg}</div>
+          <div class="theme-n">n=${v.count}</div>
+        </div>`;
+      }).join('')}
+    <div style="margin-top:10px;font-size:10px;color:var(--text3);font-family:'IBM Plex Mono'">CPL Green rate (active) — ${Object.entries(activeTS).map(([n,v])=>`${n.split(' ')[0]}: ${Math.round(v.green/v.count*100)}%`).join(' · ')}</div>`;
+
+  // Donuts — active only
+  const G='#3ddc84',Y='#f5c842',R='#ff5f5f';
+  const cplT={G:0,Y:0,R:0}, roasT={G:0,Y:0,R:0};
+  activeC.forEach(c=>{
+    if(c.cpl_tag==='Green')cplT.G++;else if(c.cpl_tag==='Yellow')cplT.Y++;else if(c.cpl_tag==='Red')cplT.R++;
+    if(c.roas_tag==='Green')roasT.G++;else if(c.roas_tag==='Yellow')roasT.Y++;else if(c.roas_tag==='Red')roasT.R++;
+  });
+  const doOpts=(d)=>({type:'doughnut',data:{labels:['Green','Yellow','Red'],datasets:[{data:d,backgroundColor:[G,Y,R],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{color:'#7b8499',font:{size:9,family:'IBM Plex Mono'},boxWidth:8,padding:5}}}}});
+
+  // Destroy existing charts before recreating
+  ['cplDonut','roasDonut'].forEach(id => {
+    const existing = Chart.getChart(id);
+    if (existing) existing.destroy();
+  });
+
+  new Chart(document.getElementById('cplDonut'),doOpts([cplT.G,cplT.Y,cplT.R]));
+  new Chart(document.getElementById('roasDonut'),doOpts([roasT.G,roasT.Y,roasT.R]));
+}
+
+// ── TABLE STATES ──
+const allS={q:'',actions:new Set(),themes:new Set(['Date Hook','Problem Statement','Generic','Social Proof','AI Creative']),status:'',sort:'health_score',dir:-1,p:1};
+const cplS={q:'',cpl_tag:'',_paused:'',status:'',themes:new Set(),sort:'age',dir:-1,p:1};
+const d3S={q:'',d3f:'',d7f:'',status:'',themes:new Set(),sort:'age',dir:-1,p:1};
+const roS={q:'',roas_tag:'',status:'',themes:new Set(),sort:'age',dir:-1,p:1};
+
+function toggleF(state,val,key,btn,render){
+  state[key]=state[key]===val?'':val; state.p=1;
+  btn.closest('.filters').querySelectorAll('.fi').forEach(b=>b.classList.remove('active'));
+  if(state[key]) btn.classList.add('active');
+  render();
+}
+
+function toggleThemeDd(val, item){
+  event.stopPropagation();
+  const cb = item.querySelector('input[type=checkbox]');
+  if(allS.themes.has(val)){ allS.themes.delete(val); cb.checked=false; item.classList.remove('checked'); }
+  else { allS.themes.add(val); cb.checked=true; item.classList.add('checked'); }
+  allS.p=1;
+  allS.actions.clear(); // reset action filter when theme changes
+  updateAllThemeLbl();
+  updateActionMenuOptions();
+  updateAllActionLbl();
+  renderAll();
+}
+
+const DH_ACTIONS  = ['Scale + Relaunch','Watch','Wind Down','Drop Angle','Too Early','Historical'];
+const EV_ACTIONS  = ['Scale','Watch','Maturing','Pause'];
+const ALL_ACTIONS = ['Scale + Relaunch','Scale','Watch','Wind Down','Maturing','Pause','Drop Angle','Too Early','Historical'];
+const ACTION_ICONS = {'Scale + Relaunch':'🚀','Scale':'⬆','Watch':'👁','Wind Down':'🌅','Maturing':'⏳','Pause':'⏸','Drop Angle':'🔴','Too Early':'⏳','Historical':'📁'};
+
+function updateActionMenuOptions(){
+  const isDH = allS.themes.size > 0 && allS.themes.size < 5 && [...allS.themes].every(t => t === 'Date Hook');
+  const isEV = allS.themes.size > 0 && allS.themes.size < 5 && ![...allS.themes].includes('Date Hook');
+  const actions = isDH ? DH_ACTIONS : isEV ? EV_ACTIONS : ALL_ACTIONS;
+  const menu = document.getElementById('allActionMenu');
+  if(!menu) return;
+  menu.innerHTML = actions.map(a =>
+    `<div class="theme-dd-item" onclick="toggleActionDd('${a}',this)"><input type="checkbox">${ACTION_ICONS[a]} ${a}</div>`
+  ).join('');
+}
+
+function updateAllThemeLbl(){
+  const lbl = document.getElementById('allThemeLbl');
+  const btn = document.getElementById('allThemeBtn');
+  if(!lbl||!btn) return;
+  if(allS.themes.size===0||allS.themes.size===5){ lbl.textContent='All'; btn.classList.remove('has-sel'); }
+  else if(allS.themes.size===1){ lbl.textContent=[...allS.themes][0].split(' ')[0]; btn.classList.add('has-sel'); }
+  else { lbl.textContent=allS.themes.size+' selected'; btn.classList.add('has-sel'); }
+}
+
+function toggleActionDd(val, item){
+  event.stopPropagation();
+  const cb = item.querySelector('input[type=checkbox]');
+  if(allS.actions.has(val)){ allS.actions.delete(val); cb.checked=false; item.classList.remove('checked'); }
+  else { allS.actions.add(val); cb.checked=true; item.classList.add('checked'); }
+  allS.p=1;
+  updateAllActionLbl();
+  renderAll();
+}
+
+function updateAllActionLbl(){
+  const lbl = document.getElementById('allActionLbl');
+  const btn = document.getElementById('allActionBtn');
+  if(!lbl||!btn) return;
+  if(allS.actions.size===0){ lbl.textContent='All'; btn.classList.remove('has-sel'); }
+  else if(allS.actions.size===1){ lbl.textContent=[...allS.actions][0].split(' ')[0]; btn.classList.add('has-sel'); }
+  else { lbl.textContent=allS.actions.size+' selected'; btn.classList.add('has-sel'); }
+}
+
+function toggleStatus(val, btn){
+  allS.status = allS.status===val ? '' : val;
+  allS.p=1;
+  document.getElementById('btnActive').classList.toggle('active', allS.status==='active');
+  document.getElementById('btnPaused').classList.toggle('active', allS.status==='paused');
+  renderAll();
+}
+
+function getAll(){
+  let r=[...C];
+  if(allS.q) r=r.filter(c=>c.key.toLowerCase().includes(allS.q.toLowerCase()));
+  if(allS.actions.size>0) r=r.filter(c=>allS.actions.has(c.action));
+  if(allS.themes.size>0&&allS.themes.size<5) r=r.filter(c=>allS.themes.has(c.theme));
+  if(allS.status==='active') r=r.filter(c=>!c.paused_from);
+  if(allS.status==='paused') r=r.filter(c=>!!c.paused_from);
+  r.sort((a,b)=>{const av=a[allS.sort]??'',bv=b[allS.sort]??'';return typeof av==='string'?allS.dir*av.localeCompare(bv):allS.dir*((av||0)-(bv||0));});
+  return r;
+}
+function renderAll(){
+  const rows=getAll();const s=allS;
+  const pages=Math.max(1,Math.ceil(rows.length/PS));s.p=Math.min(s.p,pages);
+  document.getElementById('all-cnt').textContent=rows.length+' creatives';
+  document.getElementById('allBody').innerHTML=rows.slice((s.p-1)*PS,s.p*PS).map(c=>`<tr>
+    <td>${c.paused_from ? `<span class="tag tpause">⏸ Paused</span>` : `<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
+    <td class="nm">${nameCell(c)}</td>
+    <td>${themeH(c.theme,c.theme==='Date Hook')}</td>
+    <td style="font-family:'IBM Plex Mono'">${c.age}d</td>
+    <td>${scorePill(c.health_score)}</td>
+    <td style="display:flex;align-items:center;gap:4px;padding-top:10px">${confH(c.confidence)}</td>
+    <td>${actionH(c.action)}</td>
+    <td>${tagH(c.cpl_tag)}</td>
+    <td class="nr" style="color:var(--text);font-weight:600">${c.cpl_val!=null?'₹'+c.cpl_val:'—'}</td>
+    <td>${tagH(c.cost_d3_tag)}</td>
+    <td>${tagH(c.cost_d7_tag)}</td>
+    <td>${tagH(c.roas_tag)}</td>
+    <td class="nr">${spendH(c.total_spend)}</td>
+  </tr>`).join('')||`<tr><td colspan="12" class="empty">No creatives match</td></tr>`;
+  pag('allPag',s,pages,renderAll);
+}
+function sortA(col){if(allS.sort===col)allS.dir*=-1;else{allS.sort=col;allS.dir=-1;}allS.p=1;renderAll();}
+
+function showTT(e, label, idsHtml){
+  const tt = document.getElementById('global-tt');
+  document.getElementById('tt-label').textContent = label;
+  document.getElementById('tt-ids').innerHTML = idsHtml;
+  tt.style.display = 'block';
+  const x = e.clientX + 12;
+  const y = e.clientY + 12;
+  tt.style.left = Math.min(x, window.innerWidth - 260) + 'px';
+  tt.style.top = Math.min(y, window.innerHeight - 120) + 'px';
+}
+function hideTT(){
+  document.getElementById('global-tt').style.display = 'none';
+}
+document.addEventListener('scroll', hideTT, true);
+const scSelectedThemes = new Set(['Date Hook','Problem Statement','Generic','Social Proof','AI Creative']);
+
+function scGlobalPick(theme, item) {
+  event.stopPropagation();
+  const cb = item.querySelector('input[type=checkbox]');
+  const allItem = document.querySelector('#scGlobalMenu .theme-dd-item:first-child');
+
+  if (theme === '') {
+    // Clicked "All" — clear all selections
+    scSelectedThemes.clear();
+    document.querySelectorAll('#scGlobalMenu input[type=checkbox]').forEach(c => c.checked = false);
+    cb.checked = true;
+    allItem.classList.add('checked');
+  } else {
+    // Uncheck "All"
+    allItem.querySelector('input').checked = false;
+    allItem.classList.remove('checked');
+    if (scSelectedThemes.has(theme)) {
+      scSelectedThemes.delete(theme);
+      cb.checked = false;
+      item.classList.remove('checked');
+    } else {
+      scSelectedThemes.add(theme);
+      cb.checked = true;
+      item.classList.add('checked');
+    }
+    // If nothing selected, revert to All
+    if (scSelectedThemes.size === 0) {
+      allItem.querySelector('input').checked = true;
+      allItem.classList.add('checked');
+    }
+  }
+
+  // Update button label
+  const lbl = document.getElementById('scGlobalLbl');
+  const btn = document.getElementById('scGlobalBtn');
+  if (scSelectedThemes.size === 0 || scSelectedThemes.size === 5) { lbl.textContent = 'All'; btn.classList.remove('has-sel'); }
+  else if (scSelectedThemes.size === 1) { lbl.textContent = [...scSelectedThemes][0].split(' ')[0]; btn.classList.add('has-sel'); }
+  else { lbl.textContent = scSelectedThemes.size + ' selected'; btn.classList.add('has-sel'); }
+
+  // Update all 3 scorecard tables
+  const months = [
+    {month: RAW.scorecard.cur_month, id:'sc0'},
+    {month: RAW.scorecard.prev1_month, id:'sc1'},
+    {month: RAW.scorecard.prev2_month, id:'sc2'},
+  ];
+  months.forEach(m => {
+    const theme = scSelectedThemes.size === 0 ? null : [...scSelectedThemes];
+    updateScorecard(m.month, 'scTbody'+m.id, scSelectedThemes.size === 0 ? '' : [...scSelectedThemes]);
+  });
+}
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.theme-dd-wrap')) {
+    document.querySelectorAll('.theme-dd-menu').forEach(m=>m.classList.remove('open'));
+  }
+});
+
+function toggleDD(menuId, btnId){
+  const menu = document.getElementById(menuId);
+  const isOpen = menu.classList.contains('open');
+  document.querySelectorAll('.theme-dd-menu').forEach(m=>m.classList.remove('open'));
+  if(!isOpen) menu.classList.add('open');
+}
+
+const TAB_STATE_MAP = {cpl:cplS, d3:d3S, ro:roS};
+const TAB_RENDER_MAP = {cpl:()=>renderCpl(), d3:()=>renderD3(), ro:()=>renderRo()};
+const TAB_LBL_MAP = {cpl:'cplThemeLbl', d3:'d3ThemeLbl', ro:'roThemeLbl'};
+const TAB_BTN_MAP = {cpl:'cplThemeBtn', d3:'d3ThemeBtn', ro:'roThemeBtn'};
+
+function toggleTabTheme(tab, val, item){
+  event.stopPropagation(); // keep dropdown open
+  const state = TAB_STATE_MAP[tab];
+  const cb = item.querySelector('input[type=checkbox]');
+  if(state.themes.has(val)){ state.themes.delete(val); cb.checked=false; item.classList.remove('checked'); }
+  else { state.themes.add(val); cb.checked=true; item.classList.add('checked'); }
+  state.p=1;
+  updateThemeLbl(tab);
+  TAB_RENDER_MAP[tab]();
+}
+
+function updateThemeLbl(tab){
+  const state = TAB_STATE_MAP[tab];
+  const lbl = document.getElementById(TAB_LBL_MAP[tab]);
+  const btn = document.getElementById(TAB_BTN_MAP[tab]);
+  if(!lbl||!btn) return;
+  if(state.themes.size===0){ lbl.textContent='All'; btn.classList.remove('has-sel'); }
+  else if(state.themes.size===1){ lbl.textContent=[...state.themes][0].split(' ')[0]; btn.classList.add('has-sel'); }
+  else { lbl.textContent=state.themes.size+' selected'; btn.classList.add('has-sel'); }
+}
+
+function toggleTabStatus(state, val, activeId, pausedId, render){
+  state.status = state.status===val ? '' : val;
+  state.p=1;
+  document.getElementById(activeId).classList.toggle('active', state.status==='active');
+  document.getElementById(pausedId).classList.toggle('active', state.status==='paused');
+  render();
+}
+
+function getCpl(){
+  let r=[...C];
+  if(cplS.q) r=r.filter(c=>c.key.toLowerCase().includes(cplS.q.toLowerCase()));
+  if(cplS.cpl_tag) r=r.filter(c=>c.cpl_tag===cplS.cpl_tag);
+  if(cplS.status==='active') r=r.filter(c=>!c.paused_from);
+  if(cplS.status==='paused') r=r.filter(c=>!!c.paused_from);
+  if(cplS.themes.size>0) r=r.filter(c=>cplS.themes.has(c.theme));
+  r.sort((a,b)=>{const av=a[cplS.sort]??'',bv=b[cplS.sort]??'';return typeof av==='string'?cplS.dir*av.localeCompare(bv):cplS.dir*((av||0)-(bv||0));});
+  return r;
+}
+function renderCpl(){
+  const rows=getCpl();const s=cplS;
+  const pages=Math.max(1,Math.ceil(rows.length/PS));s.p=Math.min(s.p,pages);
+  document.getElementById('cpl-cnt').textContent=rows.length+' creatives';
+  document.getElementById('cplBody').innerHTML=rows.slice((s.p-1)*PS,s.p*PS).map(c=>`<tr>
+    <td class="nm">${nameCell(c)}</td>
+    <td>${themeH(c.theme,c.theme==='Date Hook')}</td>
+    <td>${c.age}d</td>
+    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
+    <td class="nr" style="color:var(--text);font-weight:600">${c.cpl_val!=null?'₹'+c.cpl_val:'—'}</td>
+    <td>${tagH(c.cpl_tag)}</td>
+    <td>${tagH(c.cost_d3_tag)}</td>
+    <td>${tagH(c.cost_d7_tag)}</td>
+    <td>${tagH(c.roas_tag)}</td>
+    <td class="nr">${spendH(c.total_spend)}</td>
+    <td class="nr">${c.total_leads.toLocaleString('en-IN')}</td>
+  </tr>`).join('')||`<tr><td colspan="12" class="empty">No match</td></tr>`;
+  pag('cplPag',s,pages,renderCpl);
+}
+function sortC(col){if(cplS.sort===col)cplS.dir*=-1;else{cplS.sort=col;cplS.dir=-1;}cplS.p=1;renderCpl();}
+
+function getD3(){
+  let r=C.filter(c=>c.cost_d3_tag!=='Not Eligible Yet');
+  if(d3S.q) r=r.filter(c=>c.key.toLowerCase().includes(d3S.q.toLowerCase()));
+  if(d3S.d3f) r=r.filter(c=>c.cost_d3_tag===d3S.d3f);
+  if(d3S.d7f) r=r.filter(c=>c.cost_d7_tag===d3S.d7f);
+  if(d3S.status==='active') r=r.filter(c=>!c.paused_from);
+  if(d3S.status==='paused') r=r.filter(c=>!!c.paused_from);
+  if(d3S.themes.size>0) r=r.filter(c=>d3S.themes.has(c.theme));
+  r.sort((a,b)=>d3S.dir*((a[d3S.sort]||0)-(b[d3S.sort]||0)));
+  return r;
+}
+function renderD3(){
+  const rows=getD3();const s=d3S;
+  const pages=Math.max(1,Math.ceil(rows.length/PS));s.p=Math.min(s.p,pages);
+  document.getElementById('d3-cnt').textContent=rows.length+' creatives';
+  document.getElementById('d3Body').innerHTML=rows.slice((s.p-1)*PS,s.p*PS).map(c=>`<tr>
+    <td class="nm">${nameCell(c)}</td>
+    <td>${themeH(c.theme,c.theme==='Date Hook')}</td>
+    <td>${c.age}d</td>
+    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
+    <td>${tagH(c.cpl_tag)}</td>
+    <td class="nr">${c.cost_d3_val!=null?'₹'+c.cost_d3_val:'—'}</td>
+    <td>${tagH(c.cost_d3_tag)}</td>
+    <td class="nr">${c.cost_d7_val!=null?'₹'+c.cost_d7_val:'—'}</td>
+    <td>${tagH(c.cost_d7_tag)}</td>
+    <td>${tagH(c.roas_tag)}</td>
+    <td class="nr">${spendH(c.total_spend)}</td>
+  </tr>`).join('')||`<tr><td colspan="11" class="empty">No match</td></tr>`;
+  pag('d3Pag',s,pages,renderD3);
+}
+function sortD(col){if(d3S.sort===col)d3S.dir*=-1;else{d3S.sort=col;d3S.dir=-1;}d3S.p=1;renderD3();}
+
+function getRo(){
+  let r=C.filter(c=>c.roas_tag!=='Not Eligible Yet');
+  if(roS.q) r=r.filter(c=>c.key.toLowerCase().includes(roS.q.toLowerCase()));
+  if(roS.roas_tag) r=r.filter(c=>c.roas_tag===roS.roas_tag);
+  if(roS.status==='active') r=r.filter(c=>!c.paused_from);
+  if(roS.status==='paused') r=r.filter(c=>!!c.paused_from);
+  if(roS.themes.size>0) r=r.filter(c=>roS.themes.has(c.theme));
+  r.sort((a,b)=>{const av=a[roS.sort]??'',bv=b[roS.sort]??'';return typeof av==='string'?roS.dir*av.localeCompare(bv):roS.dir*((av||0)-(bv||0));});
+  return r;
+}
+function renderRo(){
+  const rows=getRo();const s=roS;
+  const pages=Math.max(1,Math.ceil(rows.length/PS));s.p=Math.min(s.p,pages);
+  document.getElementById('ro-cnt').textContent=rows.length+' creatives';
+  document.getElementById('roBody').innerHTML=rows.slice((s.p-1)*PS,s.p*PS).map(c=>`<tr>
+    <td class="nm">${nameCell(c)}</td>
+    <td>${themeH(c.theme,c.theme==='Date Hook')}</td>
+    <td>${c.age}d</td>
+    <td>${c.paused_from?`<span class="tag tpause">⏸ Paused</span>`:`<span class="tag" style="background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">● Active</span>`}</td>
+    <td>${scorePill(c.health_score)}</td>
+    <td style="display:flex;align-items:center;gap:4px;padding-top:10px">${confH(c.confidence)}</td>
+    <td>${tagH(c.cpl_tag)}</td><td>${tagH(c.cost_d3_tag)}</td><td>${tagH(c.cost_d7_tag)}</td>
+    <td class="nr" style="color:var(--text);font-weight:600">${c.roas_val!=null?c.roas_val+'×':'—'}</td>
+    <td>${tagH(c.roas_tag)}</td>
+    <td class="nr">${spendH(c.total_spend)}</td>
+  </tr>`).join('')||`<tr><td colspan="12" class="empty">No match</td></tr>`;
+  pag('roPag',s,pages,renderRo);
+}
+function sortR(col){if(roS.sort===col)roS.dir*=-1;else{roS.sort=col;roS.dir=-1;}roS.p=1;renderRo();}
+
+function pag(id,s,pages,cb){
+  const total = id==='allPag'?getAll().length:id==='cplPag'?getCpl().length:id==='d3Pag'?getD3().length:getRo().length;
+  document.getElementById(id).innerHTML=`
+    <button class="pb" onclick="s${id[0]}Page(${s.p-1})" ${s.p<=1?'disabled':''}>← Prev</button>
+    <span>Page ${s.p} / ${pages}</span>
+    <button class="pb" onclick="s${id[0]}Page(${s.p+1})" ${s.p>=pages?'disabled':''}>Next →</button>
+    <span style="margin-left:auto">${(s.p-1)*PS+1}–${Math.min(s.p*PS,total)} of ${total}</span>`;
+}
+function saPage(p){allS.p=p;renderAll();}
+function scPage(p){cplS.p=p;renderCpl();}
+function sdPage(p){d3S.p=p;renderD3();}
+function srPage(p){roS.p=p;renderRo();}
+
+// ── TABS ──
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['overview','all','cpl','d3d7','roas'][i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='all'){renderAll();}
+  if(name==='cpl') renderCpl();
+  if(name==='d3d7') renderD3();
+  if(name==='roas') renderRo();
+}
+
+// ── CREATIVE POPUP ──
+function openPopup(key) {
+  const c = C.find(x => x.key === key);
+  if (!c) return;
+  document.getElementById('popupTitle').textContent = c.key;
+  document.getElementById('popupSub').textContent =
+    `${c.theme} · ${c.go_live} · Age ${c.age}d · ${c.paused_from ? '⏸ Paused '+c.paused_from : '● Active'} · ${c.confidence} confidence`;
+
+  const daily = DAILY_DATA[key] ? [...DAILY_DATA[key]].sort((a,b)=>a.date.localeCompare(b.date)) : [];
+  const hasDailyData = daily.length > 0;
+
+  const tagColor = t => t==='Green'?'var(--green)':t==='Yellow'?'var(--yellow)':t==='Red'?'var(--red)':'var(--text3)';
+
+  document.getElementById('popupBody').innerHTML = `
+    <div class="popup-metrics">
+      <div class="pm-card">
+        <div class="pm-label">CPL</div>
+        <div class="pm-val" style="color:${tagColor(c.cpl_tag)}">${c.cpl_val!=null?'₹'+c.cpl_val:'—'}</div>
+        <div class="pm-sub">${c.cpl_tag}</div>
+      </div>
+      <div class="pm-card">
+        <div class="pm-label">Cost D3</div>
+        <div class="pm-val" style="color:${tagColor(c.cost_d3_tag)}">${c.cost_d3_val!=null?'₹'+c.cost_d3_val:c.cost_d3_tag==='Not Eligible Yet'?'N/A':'—'}</div>
+        <div class="pm-sub">${c.cost_d3_tag==='Not Eligible Yet'?'Not Eligible':c.cost_d3_tag}</div>
+      </div>
+      <div class="pm-card">
+        <div class="pm-label">Cost D7</div>
+        <div class="pm-val" style="color:${tagColor(c.cost_d7_tag)}">${c.cost_d7_val!=null?'₹'+c.cost_d7_val:c.cost_d7_tag==='Not Eligible Yet'?'N/A':'—'}</div>
+        <div class="pm-sub">${c.cost_d7_tag==='Not Eligible Yet'?'Not Eligible':c.cost_d7_tag}</div>
+      </div>
+      <div class="pm-card">
+        <div class="pm-label">ROAS</div>
+        <div class="pm-val" style="color:${tagColor(c.roas_tag)}">${c.roas_val!=null?c.roas_val+'×':c.roas_tag==='Not Eligible Yet'?'N/A':'—'}</div>
+        <div class="pm-sub">${c.roas_tag==='Not Eligible Yet'?'Not Eligible':c.roas_tag}</div>
+      </div>
+    </div>
+
+    ${hasDailyData ? `
+    <div class="popup-charts">
+      <div class="popup-chart-card">
+        <div class="popup-chart-title">Daily Spend (₹)</div>
+        <div class="popup-chart-wrap"><canvas id="popSpendChart"></canvas></div>
+      </div>
+      <div class="popup-chart-card">
+        <div class="popup-chart-title">Daily Leads & CPL</div>
+        <div class="popup-chart-wrap"><canvas id="popCplChart"></canvas></div>
+      </div>
+    </div>` : ''}
+
+    <div class="popup-ids">
+      <div class="popup-ids-title">UTM Creative IDs (${c.utm_ids?c.utm_ids.length:0})</div>
+      <div class="popup-id-list">${(c.utm_ids||[]).map(id=>`<span class="popup-id-pill">${id}</span>`).join('')}</div>
+    </div>
+
+    ${hasDailyData ? `
+    <div class="popup-daily">
+      <div class="popup-daily-title">Daily Raw Data (${daily.length} days)</div>
+      <table class="pdt">
+        <thead><tr>
+          <th>Date</th><th>Spend ₹</th><th>Leads</th><th>CPL ₹</th><th>D3+</th><th>D7+</th><th>Revenue ₹</th>
+        </tr></thead>
+        <tbody>${daily.map(d=>`<tr>
+          <td>${d.date}</td>
+          <td>${d.spend>0?'₹'+d.spend.toFixed(0):'—'}</td>
+          <td>${d.leads>0?d.leads:'—'}</td>
+          <td>${d.spend>0&&d.leads>0?'₹'+(d.spend/d.leads).toFixed(2):'—'}</td>
+          <td>${d.d3>0?d.d3:'—'}</td>
+          <td>${d.d7>0?d.d7:'—'}</td>
+          <td>${d.revenue>0?'₹'+d.revenue.toFixed(0):'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>` : `<div class="no-daily">📂 Upload a CSV to see daily trend data</div>`}
+  `;
+
+  document.getElementById('creativePopup').classList.add('open');
+
+  // Render charts after DOM is ready
+  if (hasDailyData) {
+    requestAnimationFrame(() => {
+      const labels = daily.map(d => d.date.slice(5)); // MM-DD
+      const spends = daily.map(d => d.spend);
+      const leads = daily.map(d => d.leads);
+      const cpls = daily.map(d => d.leads > 0 ? +(d.spend/d.leads).toFixed(2) : null);
+
+      ['popSpendChart','popCplChart'].forEach(id => {
+        const ex = Chart.getChart(id); if(ex) ex.destroy();
+      });
+
+      new Chart(document.getElementById('popSpendChart'), {
+        type:'bar',
+        data:{ labels, datasets:[{ data:spends, backgroundColor:'rgba(91,156,246,.5)', borderColor:'var(--blue)', borderWidth:1, borderRadius:3 }] },
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+          scales:{ x:{ticks:{color:'#555b6e',font:{size:9}},grid:{display:false}},
+            y:{ticks:{color:'#555b6e',font:{size:9},callback:v=>'₹'+v},grid:{color:'rgba(255,255,255,0.05)'}} } }
+      });
+
+      new Chart(document.getElementById('popCplChart'), {
+        data:{
+          labels,
+          datasets:[
+            {type:'bar', label:'Leads', data:leads, backgroundColor:'rgba(167,139,250,.35)', borderColor:'rgba(167,139,250,.7)', borderWidth:1, borderRadius:3, yAxisID:'y'},
+            {type:'line', label:'CPL ₹', data:cpls, borderColor:'var(--yellow)', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'var(--yellow)', tension:.3, yAxisID:'y2', spanGaps:true}
+          ]
+        },
+        options:{ responsive:true, maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ticks:{color:'#555b6e',font:{size:9}},grid:{display:false}},
+            y:{position:'left',ticks:{color:'#555b6e',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'}},
+            y2:{position:'right',ticks:{color:'var(--yellow)',font:{size:9},callback:v=>'₹'+v},grid:{display:false}}
+          } }
+      });
+    });
+  }
+}
+
+function closePopup() {
+  document.getElementById('creativePopup').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closePopup(); });
+
+// ── CSV UPLOAD ──
+function handleCSVUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('uploadStatus');
+  status.textContent = 'Processing…';
+  status.style.color = 'var(--yellow)';
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = processCSV(e.target.result);
+      // Replace RAW data and re-render everything
+      // Update RAW data
+      Object.assign(RAW, data);
+      // Sync C array in place (C is a reference to original RAW.creatives)
+      C.length = 0;
+      data.creatives.forEach(c => C.push(c));
+      // Store daily data for popup
+      DAILY_DATA = data.dailyData || {};
+      initOverview();
+      updateActionMenuOptions();
+      updateAllThemeLbl();
+      // Re-render active tab tables
+      renderAll(); renderCpl(); renderD3(); renderRo();
+      const dates = RAW.creatives.map(c => c.go_live).sort();
+      const acts = RAW.creatives.filter(c => !c.paused_from).length;
+      document.getElementById('dataInfo').textContent =
+        `${dates[0]} – ${dates[dates.length-1]} · ${RAW.creatives.length} creatives`;
+      status.textContent = '✓ Loaded successfully';
+      status.style.color = 'var(--green)';
+      status.style.fontWeight = '700';
+      setTimeout(() => { status.textContent = ''; status.style.fontWeight = ''; }, 5000);
+    } catch(err) {
+      status.textContent = '✗ ' + err.message;
+      status.style.color = 'var(--red)';
+      status.style.fontWeight = '700';
+      console.error('CSV Upload Error:', err);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function processCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/\r/,''));
+
+  // Validate required columns
+  const required = ['activity_date','utm_creative_id','ad_name','go_live_date',
+                    'daily_spend','daily_leads','daily_revenue_ex_tax',
+                    'daily_attended_3_plus','daily_attended_7_plus'];
+  const missing = required.filter(r => !headers.includes(r));
+  if (missing.length > 0) throw new Error('Missing columns: ' + missing.join(', '));
+
+  const idx = {};
+  headers.forEach((h, i) => idx[h] = i);
+
+  function parseDate(s) {
+    if (!s) return null;
+    s = s.trim().replace(/"/g, '');
+    // Try "1 Jun, 2026" or "1 June, 2026"
+    const m = s.match(/(\d+)\s+(\w+),?\s+(\d{4})/);
+    if (!m) return null;
+    const months = {Jan:0,Feb:1,Mar:2,Apr:3,April:3,May:4,Jun:5,June:5,
+                    Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11,
+                    January:0,February:1,March:2,August:7,September:8,October:9,November:10,December:11};
+    const mo = months[m[2]];
+    if (mo === undefined) return null;
+    return new Date(parseInt(m[3]), mo, parseInt(m[1]));
+  }
+
+  function fmtDate(d) {
+    return d ? d.toISOString().split('T')[0] : null;
+  }
+
+  function cleanNum(v) {
+    return parseFloat((v || '0').toString().replace(/,/g,'').trim()) || 0;
+  }
+
+  function extractKey(adName) {
+    let m;
+    m = adName.match(/Kamya\([^)]+\)(?:V\d+|AI)?(?:-AI)?/);
+    if (m) return m[0];
+    m = adName.match(/AI\([^)]+\)(?:V\d+)?/);
+    if (m) return m[0];
+    m = adName.match(/\([^)]+\)V\d+/);
+    if (m) return m[0];
+    m = adName.match(/CR-([\w]+_AI[\w]*)-VideoAd/);
+    if (m) return m[1];
+    m = adName.match(/-(StaticAd\d+|CarouselAd\d+)-/);
+    if (m) return m[1];
+    return adName;
+  }
+
+  const MONTHS_PAT = 'Jan|Feb|Mar|Apr|April|May|Jun|June|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|August|September|October|November|December';
+  const EVERGREEN = new Set(['IsMondaySe','IsMondaySe_New','KalSeStartKarunga','MondaySeShuru']);
+
+  function getTheme(key) {
+    for (const ov of EVERGREEN) if (key.toLowerCase().includes(ov.toLowerCase())) return 'Generic';
+    if (new RegExp('\\d+(' + MONTHS_PAT + ')').test(key)) return 'Date Hook';
+    for (const p of ['BP','Thyroid','Acidity','Pain','Pcos','Period','Weight','Hair','Lung','Brain','Heart','Anxiety','Fat','Burn','Neck','Back'])
+      if (key.toLowerCase().includes(p.toLowerCase())) return 'Problem Statement';
+    for (const r of ['Review','Testimonial','SeediaChadteHi','AreAajNhi'])
+      if (key.toLowerCase().includes(r.toLowerCase())) return 'Social Proof';
+    for (const p of ['AI_','_AI','AIReview','AiCreative','FatAI','Brain_AI','ITWork_AI'])
+      if (key.toLowerCase().includes(p.toLowerCase())) return 'AI Creative';
+    return 'Generic';
+  }
+
+  // Aggregate by creative key
+  const creativeMap = {};
+  const creativeIds = {};
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].replace(/\r/,'');
+    if (!line.trim()) continue;
+
+    // Handle quoted fields
+    const cols = [];
+    let cur = '', inQ = false;
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cols.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur);
+
+    const adName = (cols[idx['ad_name']] || '').trim();
+    const key = extractKey(adName);
+    const actDate = parseDate(cols[idx['activity_date']]);
+    const goLiveDate = parseDate(cols[idx['go_live_date']]);
+    const utmId = (cols[idx['utm_creative_id']] || '').trim();
+    const spend = cleanNum(cols[idx['daily_spend']]);
+    const leads = cleanNum(cols[idx['daily_leads']]);
+    const revenue = cleanNum(cols[idx['daily_revenue_ex_tax']]);
+    const d3 = cleanNum(cols[idx['daily_attended_3_plus']]);
+    const d7 = cleanNum(cols[idx['daily_attended_7_plus']]);
+
+    if (!actDate || !key) continue;
+
+    if (!creativeMap[key]) {
+      creativeMap[key] = {
+        adName, goLive: goLiveDate,
+        days: {}, totalSpend: 0, totalLeads: 0
+      };
+    }
+    const c = creativeMap[key];
+    if (!c.goLive || (goLiveDate && goLiveDate < c.goLive)) c.goLive = goLiveDate;
+
+    const dk = fmtDate(actDate);
+    if (!c.days[dk]) c.days[dk] = {spend:0,leads:0,revenue:0,d3:0,d7:0};
+    c.days[dk].spend += spend;
+    c.days[dk].leads += leads;
+    c.days[dk].revenue += revenue;
+    c.days[dk].d3 += d3;
+    c.days[dk].d7 += d7;
+    c.totalSpend += spend;
+    c.totalLeads += leads;
+    if (!creativeIds[key]) creativeIds[key] = new Set();
+    if (utmId) creativeIds[key].add(utmId);
+  }
+
+  // Find dataset latest date
+  let datasetLatest = null;
+  for (const c of Object.values(creativeMap)) {
+    for (const dk of Object.keys(c.days)) {
+      const d = new Date(dk);
+      if (!datasetLatest || d > datasetLatest) datasetLatest = d;
+    }
+  }
+
+  const MIN_SPEND = 5;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  function isEffectivelyPaused(days) {
+    const dates = Object.keys(days).sort();
+    if (!dates.length) return null;
+    const creativeLatest = new Date(dates[dates.length-1]);
+    const gap = Math.round((datasetLatest - creativeLatest) / 86400000);
+    if (gap >= 2) {
+      const pf = new Date(creativeLatest); pf.setDate(pf.getDate()+1);
+      return fmtDate(pf);
+    }
+    // Check consecutive zero spend at tail
+    let zeroStreak = 0, pausedFrom = null;
+    let checkDate = new Date(creativeLatest);
+    const earliest = new Date(dates[0]);
+    while (checkDate >= earliest) {
+      const dk = fmtDate(checkDate);
+      const spend = days[dk] ? days[dk].spend : 0;
+      if (spend < MIN_SPEND) {
+        zeroStreak++;
+        if (zeroStreak === 1) pausedFrom = fmtDate(checkDate);
+      } else break;
+      checkDate.setDate(checkDate.getDate()-1);
+    }
+    return zeroStreak >= 2 ? pausedFrom : null;
+  }
+
+  const creatives = [];
+
+  for (const [key, c] of Object.entries(creativeMap)) {
+    if (!c.goLive) continue;
+    const goLive = c.goLive;
+    const age = Math.round((today - goLive) / 86400000);
+    const paused_from = isEffectivelyPaused(c.days);
+    const theme = getTheme(key);
+    const is_ai = /AI|_ai/i.test(key);
+    const total_spend = Math.round(c.totalSpend);
+    const total_leads = Math.round(c.totalLeads);
+
+    // CPL — first 21 days
+    const goLive20 = new Date(goLive); goLive20.setDate(goLive20.getDate()+20);
+    let cplSpend = 0, cplLeads = 0;
+    for (const [dk, v] of Object.entries(c.days)) {
+      const d = new Date(dk);
+      if (d <= goLive20 && d < today) { cplSpend += v.spend; cplLeads += v.leads; }
+    }
+    const cpl_val = cplLeads > 0 ? Math.round(cplSpend/cplLeads*100)/100 : null;
+    const cpl_tag = cpl_val == null ? 'Red' : cpl_val < 10 ? 'Green' : cpl_val <= 15 ? 'Yellow' : 'Red';
+
+    // D3
+    const d3Win = age < 14 ? null : age <= 20 ? 7 : age <= 27 ? 14 : 21;
+    let cost_d3_tag = 'Not Eligible Yet', cost_d3_val = null;
+    if (d3Win) {
+      const cutoff = new Date(goLive); cutoff.setDate(cutoff.getDate()+d3Win-1);
+      let s=0,a=0;
+      for (const [dk,v] of Object.entries(c.days)) {
+        const d = new Date(dk);
+        if (d < today && d <= cutoff) { s += v.spend; a += v.d3; }
+      }
+      if (a === 0) cost_d3_tag = 'Red';
+      else {
+        cost_d3_val = Math.round(s/a*100)/100;
+        cost_d3_tag = cost_d3_val < 33 ? 'Green' : cost_d3_val <= 38 ? 'Yellow' : 'Red';
+      }
+    }
+
+    // D7
+    const d7Win = age < 21 ? null : age <= 27 ? 7 : 14;
+    let cost_d7_tag = 'Not Eligible Yet', cost_d7_val = null;
+    if (d7Win) {
+      const cutoff = new Date(goLive); cutoff.setDate(cutoff.getDate()+d7Win-1);
+      let s=0,a=0;
+      for (const [dk,v] of Object.entries(c.days)) {
+        const d = new Date(dk);
+        if (d < today && d <= cutoff) { s += v.spend; a += v.d7; }
+      }
+      if (a === 0) cost_d7_tag = 'Red';
+      else {
+        cost_d7_val = Math.round(s/a*100)/100;
+        cost_d7_tag = cost_d7_val < 66 ? 'Green' : cost_d7_val <= 95 ? 'Yellow' : 'Red';
+      }
+    }
+
+    // ROAS
+    const roasWin = age < 28 ? null : age <= 34 ? 7 : 14;
+    let roas_tag = 'Not Eligible Yet', roas_val = null;
+    if (roasWin) {
+      const cutoff = new Date(goLive); cutoff.setDate(cutoff.getDate()+roasWin-1);
+      let rs=0,rr=0;
+      for (const [dk,v] of Object.entries(c.days)) {
+        const d = new Date(dk);
+        if (d < today && d <= cutoff) { rs += v.spend; rr += v.revenue; }
+      }
+      if (rs === 0) roas_tag = 'Red';
+      else {
+        roas_val = Math.round(rr/rs*100)/100;
+        roas_tag = roas_val >= 1.8 ? 'Green' : roas_val > 1.2 ? 'Yellow' : 'Red';
+      }
+    }
+
+    const confidence = total_spend < 5000 ? 'Low' : total_spend < 20000 ? 'Medium' : 'High';
+    const ts = {Green:2,Yellow:1,Red:0};
+
+    let health_score, action, dh_phase;
+    if (theme === 'Date Hook') {
+      if (age < 3) { health_score=50; action='Too Early'; dh_phase='too_early'; }
+      else if (age <= 7) {
+        dh_phase='signal_window';
+        if (cpl_tag==='Green') { health_score=100; action='Scale + Relaunch'; }
+        else if (cpl_tag==='Yellow') { health_score=50; action='Watch'; }
+        else { health_score=0; action='Drop Angle'; }
+      } else if (age <= 14) {
+        dh_phase='wind_down';
+        health_score = cpl_tag==='Green'?70:cpl_tag==='Yellow'?40:10;
+        action='Wind Down';
+      } else {
+        dh_phase='historical';
+        health_score = cpl_tag==='Green'?100:cpl_tag==='Yellow'?50:0;
+        action='Historical';
+      }
+    } else {
+      dh_phase = null;
+      if (age < 14) {
+        health_score = Math.round((ts[cpl_tag]??0)/2*100);
+        action = cpl_tag==='Green'?'Watch':cpl_tag==='Red'&&total_spend>3000?'Pause':'Maturing';
+      } else if (age < 28) {
+        const w=[];
+        if (cpl_tag in ts) w.push([ts[cpl_tag],40]);
+        if (cost_d3_tag in ts) w.push([ts[cost_d3_tag],35]);
+        if (cost_d7_tag in ts) w.push([ts[cost_d7_tag],25]);
+        const tw = w.reduce((s,[,wt])=>s+wt,0)||1;
+        health_score = w.length ? Math.round(w.reduce((s,[v,wt])=>s+v*wt,0)/(2*tw)*100) : 0;
+        action = health_score>=70?'Scale':health_score>=40?'Watch':'Pause';
+      } else {
+        const rw = total_spend<5000?10:total_spend<20000?20:30;
+        const w=[];
+        if (cpl_tag in ts) w.push([ts[cpl_tag],30]);
+        if (cost_d3_tag in ts) w.push([ts[cost_d3_tag],25]);
+        if (cost_d7_tag in ts) w.push([ts[cost_d7_tag],20]);
+        if (roas_tag in ts) w.push([ts[roas_tag],rw]);
+        const tw = w.reduce((s,[,wt])=>s+wt,0)||1;
+        health_score = w.length ? Math.round(w.reduce((s,[v,wt])=>s+v*wt,0)/(2*tw)*100) : 0;
+        action = health_score>=70&&confidence!=='Low'?'Scale':health_score>=50?'Watch':'Pause';
+      }
+    }
+
+    creatives.push({
+      key, ad_name: c.adName, go_live: fmtDate(goLive), age, theme, dh_phase,
+      paused_from, cpl_val, cpl_tag, cost_d3_val, cost_d3_tag,
+      cost_d7_val, cost_d7_tag, roas_val, roas_tag,
+      total_spend, total_leads, is_ai, health_score, confidence, action,
+      utm_ids: [...(creativeIds[key]||[])].sort()
+    });
+  }
+
+  // Build scorecard
+  function scorecard(monthStr) {
+    const mc = creatives.filter(c => c.go_live.startsWith(monthStr));
+    const total = mc.length;
+    return [['CPL','cpl_tag'],['Cost D3','cost_d3_tag'],['Cost D7','cost_d7_tag'],['ROAS','roas_tag']].map(([metric,key]) => ({
+      metric, total,
+      green: mc.filter(c=>c[key]==='Green').length,
+      yellow: mc.filter(c=>c[key]==='Yellow').length,
+      red: mc.filter(c=>c[key]==='Red').length
+    }));
+  }
+
+  const allDates = creatives.map(c=>c.go_live).sort();
+  const cur = datasetLatest ? datasetLatest.toISOString().slice(0,7) : new Date().toISOString().slice(0,7);
+  const prevDate = new Date(cur+'-01'); prevDate.setDate(0);
+  const p1 = prevDate.toISOString().slice(0,7);
+  const prev2Date = new Date(p1+'-01'); prev2Date.setDate(0);
+  const p2 = prev2Date.toISOString().slice(0,7);
+
+  const tp = {};
+  for (const c of creatives) {
+    if (!tp[c.theme]) tp[c.theme] = {scores:[],green_cpl:0,total:0};
+    tp[c.theme].scores.push(c.health_score);
+    tp[c.theme].total++;
+    if (c.cpl_tag==='Green') tp[c.theme].green_cpl++;
+  }
+  const theme_summary = {};
+  for (const [t,v] of Object.entries(tp)) {
+    theme_summary[t] = {
+      count: v.total,
+      avg_score: Math.round(v.scores.reduce((a,b)=>a+b,0)/v.scores.length),
+      green_rate: Math.round(v.green_cpl/v.total*100)
+    };
+  }
+
+  // Build dailyData for popup charts
+  const dailyData = {};
+  for (const [key, c] of Object.entries(creativeMap)) {
+    dailyData[key] = Object.entries(c.days).map(([date, v]) => ({
+      date,
+      spend: Math.round(v.spend * 100) / 100,
+      leads: Math.round(v.leads),
+      revenue: Math.round(v.revenue * 100) / 100,
+      d3: Math.round(v.d3),
+      d7: Math.round(v.d7),
+    })).sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  return {
+    creatives,
+    dailyData,
+    scorecard: {current:scorecard(cur),prev1:scorecard(p1),prev2:scorecard(p2),
+                cur_month:cur,prev1_month:p1,prev2_month:p2},
+    theme_summary
+  };
+}
+
+function scorecardForMonth(monthStr, themes) {
+  let mc = C.filter(c => c.go_live.startsWith(monthStr));
+  // themes can be: '' (all), a string, or an array
+  if (themes && themes.length > 0 && themes.length < 5) {
+    const arr = Array.isArray(themes) ? themes : [themes];
+    mc = mc.filter(c => arr.includes(c.theme));
+  }
+  return [['CPL','cpl_tag'],['Cost D3','cost_d3_tag'],['Cost D7','cost_d7_tag'],['ROAS','roas_tag']].map(([metric,key]) => {
+    const eligible = mc.filter(c => c[key] !== 'Not Eligible Yet');
+    return {
+      metric,
+      total: eligible.length,
+      green: eligible.filter(c=>c[key]==='Green').length,
+      yellow: eligible.filter(c=>c[key]==='Yellow').length,
+      red: eligible.filter(c=>c[key]==='Red').length
+    };
+  });
+}
+
+function renderScorecardTable(rows) {
+  return rows.map(r=>`<tr>
+    <td>${r.metric}</td>
+    <td class="sc-t">${r.total}</td>
+    <td class="sc-g">${r.green}</td>
+    <td class="sc-y">${r.yellow}</td>
+    <td class="sc-r">${r.red}</td>
+  </tr>`).join('');
+}
+
+function updateScorecard(monthStr, tbodyId, themes) {
+  const rows = scorecardForMonth(monthStr, themes);
+  document.getElementById(tbodyId).innerHTML = renderScorecardTable(rows);
+}
+
+initOverview();
+updateActionMenuOptions();
+updateAllThemeLbl();
+</script>
+</body>
+</html>
