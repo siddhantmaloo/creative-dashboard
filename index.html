@@ -2168,7 +2168,7 @@ function processCSV(text) {
                     January:0,February:1,March:2,August:7,September:8,October:9,November:10,December:11};
     const mo = months[m[2]];
     if (mo === undefined) return null;
-    return new Date(parseInt(m[3]), mo, parseInt(m[1]));
+    return new Date(Date.UTC(parseInt(m[3]), mo, parseInt(m[1])));
   }
 
   function fmtDate(d) {
