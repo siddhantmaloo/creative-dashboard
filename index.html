@@ -150,6 +150,23 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 .sc-table td:first-child{text-align:left;font-family:'Manrope',sans-serif;font-weight:700;color:var(--text)}
 .sc-g{color:var(--green)}.sc-y{color:var(--yellow)}.sc-r{color:var(--red)}.sc-t{color:var(--text2)}
 .sc-row-link:hover td{background:rgba(255,255,255,.04)}
+.alert-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:3fr 1fr 1fr 1fr 1fr 1fr 2fr;align-items:center;gap:12px;transition:border-color .15s}
+.alert-card:hover{border-color:var(--border2)}
+.alert-card.p1{border-left:3px solid #ff5f5f}
+.alert-card.p2{border-left:3px solid #f5c842}
+.alert-card.p3{border-left:3px solid #3ddc84}
+.alert-card.p4{border-left:3px solid #5b9cf6}
+.alert-rec{font-size:11px;font-weight:800;padding:3px 9px;border-radius:var(--rs);display:inline-block;white-space:nowrap}
+.alert-rec.pause{background:rgba(255,95,95,.15);color:#ff5f5f}
+.alert-rec.scale{background:rgba(61,220,132,.15);color:#3ddc84}
+.alert-rec.reactivate{background:rgba(91,156,246,.15);color:#5b9cf6}
+.alert-name{font-size:12px;font-weight:700;cursor:pointer;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alert-name:hover{color:var(--blue)}
+.alert-meta{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono';margin-top:2px}
+.alert-val{font-size:12px;font-family:'IBM Plex Mono';text-align:right}
+.alert-reason{font-size:11px;color:var(--text2);line-height:1.5}
+.alert-col-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:'IBM Plex Mono';padding:0 0 8px 0;display:grid;grid-template-columns:3fr 1fr 1fr 1fr 1fr 1fr 2fr;gap:12px}
+.alert-filter-btn.active{background:var(--bbg);border-color:var(--bborder);color:var(--blue)}
 
 /* ── THEME ── */
 .theme-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
@@ -366,6 +383,7 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
   <div class="tab" onclick="switchTab('d3d7')">D3 / D7</div>
   <div class="tab" onclick="switchTab('roas')">ROAS</div>
   <div class="tab" onclick="switchTab('scaled')">⬆ Scaled (28d+)</div>
+  <div class="tab" id="alertsTab" onclick="switchTab('alerts')" style="position:relative">🔔 Alerts <span id="alertBadge" style="display:none;background:#ff5f5f;color:#fff;border-radius:10px;font-size:9px;font-weight:800;padding:1px 5px;margin-left:4px;vertical-align:middle"></span></div>
 </div>
 
 <div class="page">
@@ -704,6 +722,23 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
     <tbody id="scBody"></tbody></table>
     <div class="pag" id="scPag"></div>
   </div>
+</div>
+
+<!-- ══════ ALERTS ══════ -->
+<div class="panel" id="panel-alerts">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="sec-label" style="margin-bottom:0">Creative Alerts</div>
+      <span id="alertSummary" style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono'"></span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="fi alert-filter-btn active" data-af="all"    onclick="setAlertFilter('all',this)">All</button>
+      <button class="fi alert-filter-btn" data-af="pause"   onclick="setAlertFilter('pause',this)" style="color:#ff5f5f">⏸ Pause</button>
+      <button class="fi alert-filter-btn" data-af="scale"   onclick="setAlertFilter('scale',this)" style="color:#3ddc84">⬆ Scale</button>
+      <button class="fi alert-filter-btn" data-af="reactivate" onclick="setAlertFilter('reactivate',this)" style="color:#5b9cf6">▶ Reactivate</button>
+    </div>
+  </div>
+  <div id="alertsBody"></div>
 </div>
 
 </div>
@@ -1476,9 +1511,238 @@ function scPage(p){cplS.p=p;renderCpl();}
 function sdPage(p){d3S.p=p;renderD3();}
 function srPage(p){roS.p=p;renderRo();}
 
+// ── ALERTS ENGINE ──
+let alertFilter = 'all';
+
+function setAlertFilter(f, btn) {
+  alertFilter = f;
+  document.querySelectorAll('.alert-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAlerts();
+}
+
+function recentCPL(key, nDays) {
+  const daily = DAILY_DATA[key];
+  if (!daily || !daily.length) return null;
+  const sorted = [...daily].sort((a,b) => b.date.localeCompare(a.date));
+  const slice = sorted.slice(0, nDays);
+  const spend = slice.reduce((s,d) => s + d.spend, 0);
+  const leads = slice.reduce((s,d) => s + d.leads, 0);
+  return leads > 0 ? Math.round(spend / leads * 100) / 100 : null;
+}
+
+function recentSpend(key, nDays) {
+  const daily = DAILY_DATA[key];
+  if (!daily || !daily.length) return 0;
+  const sorted = [...daily].sort((a,b) => b.date.localeCompare(a.date));
+  return sorted.slice(0, nDays).reduce((s,d) => s + d.spend, 0) / Math.min(nDays, sorted.length);
+}
+
+function extractDateHookTarget(key) {
+  // Match patterns like: 1Jun, 5thJun, 15June, 10thJune etc.
+  const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,April:3,May:4,Jun:5,June:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11,
+                  January:0,February:1,March:2,August:7,September:8,October:9,November:10,December:11};
+  const pat = new RegExp('(\\d+)(?:st|nd|rd|th)?(' + Object.keys(MONTHS).join('|') + ')');
+  const m = key.match(pat);
+  if (!m) return null;
+  const day = parseInt(m[1]);
+  const mo = MONTHS[m[2]];
+  if (mo === undefined) return null;
+  // Infer year: if month is in the past relative to today, use next year
+  const today = new Date(); today.setHours(0,0,0,0);
+  let year = today.getFullYear();
+  const candidate = new Date(year, mo, day);
+  // If candidate is more than 60 days in the past it might be next year... unlikely for dates in names
+  return candidate;
+}
+
+function computeAlerts() {
+  const thr = getThr();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const alerts = [];
+
+  for (const c of C) {
+    const isActive = !c.paused_from;
+    const isDH = c.theme === 'Date Hook';
+    const r2 = recentCPL(c.key, 2);
+    const r3 = recentCPL(c.key, 3);
+    const r4 = recentCPL(c.key, 4);
+    const r5 = recentCPL(c.key, 5);
+    const r6 = recentCPL(c.key, 6);
+    const recentShort = r3 ?? r4;   // 3-4 day CPL
+    const recentMid   = r5 ?? r6;   // 5-6 day CPL
+    const avgDailySpend = recentSpend(c.key, 3);
+
+    // ── OBJECTIVE 4: Date-Hook Expiry ──
+    if (isDH && isActive) {
+      const target = extractDateHookTarget(c.key);
+      if (target) {
+        const daysPast = Math.round((today - target) / 86400000);
+        if (daysPast >= 2) {
+          const isStrong = recentShort != null && recentShort <= thr.cplGreen;
+          const pauseDay = isStrong ? 3 : 1; // allow 3-day extension if performing well
+          if (daysPast >= pauseDay) {
+            alerts.push({
+              key: c.key, priority: 1, rec: 'pause',
+              tag: c.cpl_tag, age: c.age,
+              recentShort, recentMid, avgDailySpend,
+              reason: `Date-hook expired ${daysPast}d ago (target: ${target.toLocaleDateString('en-IN',{day:'numeric',month:'short'})})${isStrong&&daysPast<4?' — extended due to strong CPL':''}`,
+              label: 'Date Hook Expired'
+            });
+            continue;
+          }
+        }
+      }
+    }
+
+    if (isActive) {
+      // ── OBJECTIVE 1 Rule 3: Action = Paused ──
+      if (c.action === 'Pause') {
+        alerts.push({
+          key: c.key, priority: 1, rec: 'pause',
+          tag: c.cpl_tag, age: c.age,
+          recentShort, recentMid, avgDailySpend,
+          reason: 'Action recommendation is "Pause"',
+          label: 'Action Override'
+        });
+        continue;
+      }
+
+      // ── OBJECTIVE 1 Rule 1: Red CPL + poor recent ──
+      if (!isDH && c.age >= 12 && c.cpl_tag === 'Red') {
+        const poorRecent = recentShort != null && recentShort > 15;
+        if (poorRecent) {
+          alerts.push({
+            key: c.key, priority: 1, rec: 'pause',
+            tag: c.cpl_tag, age: c.age,
+            recentShort, recentMid, avgDailySpend,
+            reason: `CPL Tag Red · Age ${c.age}d · Last 3-4d CPL ₹${recentShort} > ₹15`,
+            label: 'Consistently Poor CPL'
+          });
+          continue;
+        }
+      }
+
+      // ── OBJECTIVE 1 Rule 2: Green/Yellow but deteriorating ──
+      if ((c.cpl_tag === 'Green' || c.cpl_tag === 'Yellow') && c.cpl_val) {
+        const deteriorated = recentMid != null && recentMid > c.cpl_val * 1.4 && recentMid > thr.cplGreen;
+        if (deteriorated) {
+          alerts.push({
+            key: c.key, priority: 2, rec: 'pause',
+            tag: c.cpl_tag, age: c.age,
+            recentShort, recentMid, avgDailySpend,
+            reason: `CPL Tag ${c.cpl_tag} overall but recent 5-6d CPL ₹${recentMid} is ${Math.round(recentMid/c.cpl_val*100-100)}% above historical ₹${c.cpl_val}`,
+            label: 'Deteriorating Performance'
+          });
+          continue;
+        }
+      }
+
+      // ── OBJECTIVE 2: Should Be Scaled ──
+      if (c.age >= 6) {
+        const strongCPL = c.cpl_tag === 'Green' || (recentShort != null && recentShort <= 9);
+        const lowSpend = avgDailySpend < 500;
+        if (strongCPL && lowSpend) {
+          alerts.push({
+            key: c.key, priority: 3, rec: 'scale',
+            tag: c.cpl_tag, age: c.age,
+            recentShort, recentMid, avgDailySpend,
+            reason: `${c.cpl_tag==='Green'?'CPL Tag Green':'Recent CPL ₹'+recentShort+' ≤ ₹9'} · Avg daily spend ₹${Math.round(avgDailySpend)} < ₹500`,
+            label: 'Scaling Opportunity'
+          });
+        }
+      }
+
+    } else {
+      // ── OBJECTIVE 3: Paused but should reactivate ──
+      const isDHExpired = isDH && extractDateHookTarget(c.key) && (today - extractDateHookTarget(c.key)) / 86400000 > 3;
+      if (!isDHExpired) {
+        const goodRoas = c.roas_val != null && c.roas_val >= 1.6;
+        const reactivate = c.cpl_tag === 'Green' || (recentShort != null && recentShort <= 9) || goodRoas;
+        if (reactivate) {
+          const reasons = [];
+          if (c.cpl_tag === 'Green') reasons.push('CPL Tag Green');
+          if (recentShort != null && recentShort <= 9) reasons.push(`Recent CPL ₹${recentShort} ≤ ₹9`);
+          if (goodRoas) reasons.push(`ROAS ${c.roas_val}× ≥ 1.6`);
+          alerts.push({
+            key: c.key, priority: 4, rec: 'reactivate',
+            tag: c.cpl_tag, age: c.age,
+            recentShort, recentMid, avgDailySpend,
+            reason: reasons.join(' · '),
+            label: 'Paused — Consider Reactivating'
+          });
+        }
+      }
+    }
+  }
+
+  // Sort by priority then age desc
+  alerts.sort((a,b) => a.priority - b.priority || b.age - a.age);
+  return alerts;
+}
+
+function renderAlerts() {
+  const alerts = computeAlerts();
+  const filtered = alertFilter === 'all' ? alerts : alerts.filter(a => a.rec === alertFilter);
+
+  // Update badge
+  const badge = document.getElementById('alertBadge');
+  const pauseCount = alerts.filter(a => a.rec === 'pause').length;
+  if (badge) { badge.textContent = pauseCount; badge.style.display = pauseCount > 0 ? 'inline' : 'none'; }
+
+  // Summary
+  const byRec = {pause:0, scale:0, reactivate:0};
+  alerts.forEach(a => byRec[a.rec]++);
+  const sumEl = document.getElementById('alertSummary');
+  if (sumEl) sumEl.textContent = `${alerts.length} alerts · ${byRec.pause} pause · ${byRec.scale} scale · ${byRec.reactivate} reactivate`;
+
+  const body = document.getElementById('alertsBody');
+  if (!body) return;
+
+  if (filtered.length === 0) {
+    body.innerHTML = `<div class="empty">No alerts for selected filter</div>`;
+    return;
+  }
+
+  const fmt = v => v != null ? `₹${v}` : '—';
+  const tagColor = t => t==='Green'?'var(--green)':t==='Yellow'?'var(--yellow)':'var(--red)';
+  const priorityLabel = {1:'P1',2:'P2',3:'P3',4:'P4'};
+  const priorityClass = {1:'p1',2:'p2',3:'p3',4:'p4'};
+
+  body.innerHTML = `
+    <div class="alert-col-hdr">
+      <div>Creative</div>
+      <div style="text-align:right">Age</div>
+      <div style="text-align:right">CPL Tag</div>
+      <div style="text-align:right">Recent 3-4d</div>
+      <div style="text-align:right">Recent 5-6d</div>
+      <div style="text-align:right">Avg Spend/d</div>
+      <div>Reason</div>
+    </div>
+    ${filtered.map(a => {
+      const recClass = a.rec;
+      const keyEsc = a.key.replace(/'/g,"\\'");
+      return `<div class="alert-card ${priorityClass[a.priority]}">
+        <div>
+          <div class="alert-name" onclick="openPopup('${keyEsc}')">${a.key.length > 36 ? a.key.slice(0,36)+'…' : a.key}</div>
+          <div class="alert-meta">${a.label} · ${a.rec==='reactivate'?'⏸ Paused':'● Active'} · Age ${a.age}d</div>
+        </div>
+        <div class="alert-val" style="color:var(--text2)">${a.age}d</div>
+        <div class="alert-val" style="color:${tagColor(a.tag)}">${a.tag||'—'}</div>
+        <div class="alert-val" style="color:${a.recentShort!=null&&a.recentShort<=9?'var(--green)':a.recentShort!=null&&a.recentShort<=20?'var(--yellow)':'var(--red)'}">${fmt(a.recentShort)}</div>
+        <div class="alert-val" style="color:${a.recentMid!=null&&a.recentMid<=9?'var(--green)':a.recentMid!=null&&a.recentMid<=20?'var(--yellow)':'var(--red)'}">${fmt(a.recentMid)}</div>
+        <div class="alert-val">₹${Math.round(a.avgDailySpend)}</div>
+        <div>
+          <span class="alert-rec ${recClass}">${a.rec==='pause'?'⏸ Pause':a.rec==='scale'?'⬆ Scale':'▶ Reactivate'}</span>
+          <div class="alert-reason" style="margin-top:4px">${a.reason}</div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
 // ── TABS ──
 function switchTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['overview','all','cpl','d3d7','roas','scaled'][i]===name));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['overview','all','cpl','d3d7','roas','scaled','alerts'][i]===name));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='all') renderAll();
@@ -1486,6 +1750,7 @@ function switchTab(name){
   if(name==='d3d7') renderD3();
   if(name==='roas') renderRo();
   if(name==='scaled') renderScaled();
+  if(name==='alerts') renderAlerts();
 }
 
 // ── CREATIVE POPUP ──
@@ -1724,7 +1989,7 @@ function saveSettings() {
   }
   initOverview();
   renderSupply();
-  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled();
+  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled(); renderAlerts();
 }
 
 function resetThresholds() {
@@ -1825,7 +2090,7 @@ function saveNote() {
   }
   localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
   closeNotes();
-  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled();
+  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled(); renderAlerts();
 }
 
 function clearNote() {
@@ -2071,7 +2336,7 @@ function applyData(data) {
   updateActionMenuOptions();
   updateAllThemeLbl();
   populateMonthBtns();
-  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled();
+  renderAll(); renderCpl(); renderD3(); renderRo(); renderScaled(); renderAlerts();
   document.getElementById('btnActive').classList.toggle('active', allS.status==='active');
   document.getElementById('btnPaused').classList.toggle('active', allS.status==='paused');
   document.getElementById('cplBtnActive').classList.toggle('active', cplS.status==='active');
