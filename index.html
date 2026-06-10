@@ -1524,8 +1524,10 @@ function setAlertFilter(f, btn) {
 function recentCPL(key, nDays) {
   const daily = DAILY_DATA[key];
   if (!daily || !daily.length) return null;
-  const sorted = [...daily].sort((a,b) => b.date.localeCompare(a.date));
-  const slice = sorted.slice(0, nDays);
+  // Only include days with actual spend (>= ₹5)
+  const active = [...daily].filter(d => d.spend >= 5).sort((a,b) => b.date.localeCompare(a.date));
+  const slice = active.slice(0, nDays);
+  if (slice.length === 0) return null;
   const spend = slice.reduce((s,d) => s + d.spend, 0);
   const leads = slice.reduce((s,d) => s + d.leads, 0);
   return leads > 0 ? Math.round(spend / leads * 100) / 100 : null;
@@ -1534,8 +1536,9 @@ function recentCPL(key, nDays) {
 function recentSpend(key, nDays) {
   const daily = DAILY_DATA[key];
   if (!daily || !daily.length) return 0;
-  const sorted = [...daily].sort((a,b) => b.date.localeCompare(a.date));
-  return sorted.slice(0, nDays).reduce((s,d) => s + d.spend, 0) / Math.min(nDays, sorted.length);
+  const active = [...daily].filter(d => d.spend >= 5).sort((a,b) => b.date.localeCompare(a.date));
+  if (!active.length) return 0;
+  return active.slice(0, nDays).reduce((s,d) => s + d.spend, 0) / Math.min(nDays, active.length);
 }
 
 function extractDateHookTarget(key) {
