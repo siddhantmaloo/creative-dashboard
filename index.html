@@ -265,6 +265,9 @@ body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;fon
 .pdt td{padding:6px 12px;border-top:1px solid var(--border);text-align:right;color:var(--text2)}
 .pdt td:first-child{text-align:left;color:var(--text)}
 .pdt tr:hover td{background:var(--bg4)}
+.pdt-tab{font-size:10px;font-weight:700;padding:4px 12px;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;transition:background .15s,color .15s}
+.pdt-tab-on{background:var(--blue);color:#fff}
+.pdt-tab-off{background:transparent;color:var(--text2)}
 .no-daily{padding:32px;text-align:center;color:var(--text3);font-size:12px}
 </style>
 </head>
@@ -1881,14 +1884,21 @@ function openPopup(key) {
     </div>
 
     ${hasDailyData ? (() => {
+      const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const fmtD = iso => { const p=iso.split('-'); return p[2]+' '+MN[+p[1]-1]; };
       // Build weekly aggregates (Mon–Sun ISO weeks)
       const weekMap = new Map();
       daily.forEach(d => {
         const dt = new Date(d.date);
-        const dow = (dt.getUTCDay() + 6) % 7; // 0=Mon
-        const mon = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate() - dow));
-        const wk = mon.toISOString().slice(0,10);
-        if (!weekMap.has(wk)) weekMap.set(wk, {week:wk, spend:0, leads:0, d3:0, d7:0, revenue:0, days:0});
+        const dow = (dt.getUTCDay() + 6) % 7;
+        const monDt = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate() - dow));
+        const sunDt = new Date(Date.UTC(monDt.getUTCFullYear(), monDt.getUTCMonth(), monDt.getUTCDate() + 6));
+        const wk = monDt.toISOString().slice(0,10);
+        const wkEnd = sunDt.toISOString().slice(0,10);
+        // ISO week number
+        const jan4 = new Date(Date.UTC(monDt.getUTCFullYear(),0,4));
+        const wNum = Math.ceil(((monDt-jan4)/86400000+((jan4.getUTCDay()+6)%7)+1)/7);
+        if (!weekMap.has(wk)) weekMap.set(wk, {week:wk, wEnd:wkEnd, wNum, spend:0, leads:0, d3:0, d7:0, revenue:0, days:0});
         const r = weekMap.get(wk);
         r.spend += d.spend; r.leads += d.leads; r.d3 += (d.d3||0); r.d7 += (d.d7||0); r.revenue += (d.revenue||0); r.days++;
       });
@@ -1897,9 +1907,9 @@ function openPopup(key) {
       <div class="popup-daily">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div class="popup-daily-title" style="margin-bottom:0">Raw Data</div>
-          <div style="display:flex;gap:4px">
-            <button id="pdt-daily-btn" onclick="pdtSwitch('daily')" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;border:1px solid var(--blue);background:var(--blue);color:#fff;cursor:pointer;font-family:'IBM Plex Mono',monospace">Daily</button>
-            <button id="pdt-weekly-btn" onclick="pdtSwitch('weekly')" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'IBM Plex Mono',monospace">Weekly</button>
+          <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:5px;overflow:hidden">
+            <button id="pdt-daily-btn" onclick="pdtSwitch('daily')" class="pdt-tab pdt-tab-on">Daily</button>
+            <button id="pdt-weekly-btn" onclick="pdtSwitch('weekly')" class="pdt-tab pdt-tab-off">Weekly</button>
           </div>
         </div>
         <div id="pdt-daily-view">
@@ -1918,17 +1928,29 @@ function openPopup(key) {
         </div>
         <div id="pdt-weekly-view" style="display:none">
           <table class="pdt">
-            <thead><tr><th>Week of</th><th>Days</th><th>Spend ₹</th><th>Leads</th><th>CPL ₹</th><th>D3+</th><th>D7+</th><th>Revenue ₹</th></tr></thead>
-            <tbody>${weeks.map(w=>`<tr>
-              <td>${w.week}</td>
+            <thead><tr><th>Week</th><th>Days</th><th>Spend ₹</th><th>Leads</th><th>CPL ₹</th><th>D3+</th><th>D3%</th><th>Cost D3</th><th>D7+</th><th>D7%</th><th>Cost D7</th><th>Revenue ₹</th><th>ROAS</th></tr></thead>
+            <tbody>${weeks.map(w => {
+              const cpl   = w.leads>0 ? (w.spend/w.leads).toFixed(2) : null;
+              const d3pct = w.leads>0 ? (w.d3/w.leads*100).toFixed(1) : null;
+              const d7pct = w.leads>0 ? (w.d7/w.leads*100).toFixed(1) : null;
+              const cd3   = w.d3>0   ? (w.spend/w.d3).toFixed(2) : null;
+              const cd7   = w.d7>0   ? (w.spend/w.d7).toFixed(2) : null;
+              const roas  = w.spend>0 ? (w.revenue/w.spend).toFixed(2) : null;
+              return `<tr>
+              <td style="white-space:nowrap"><span style="color:var(--text2);font-size:10px">W${w.wNum}</span> <span style="color:var(--text3);font-size:10px">(${fmtD(w.week)}–${fmtD(w.wEnd)})</span></td>
               <td style="color:var(--text3)">${w.days}</td>
               <td>${w.spend>0?'₹'+w.spend.toFixed(0):'—'}</td>
               <td>${w.leads>0?w.leads:'—'}</td>
-              <td>${w.spend>0&&w.leads>0?'₹'+(w.spend/w.leads).toFixed(2):'—'}</td>
+              <td>${cpl?'₹'+cpl:'—'}</td>
               <td>${w.d3>0?w.d3:'—'}</td>
+              <td>${d3pct?d3pct+'%':'—'}</td>
+              <td>${cd3?'₹'+cd3:'—'}</td>
               <td>${w.d7>0?w.d7:'—'}</td>
+              <td>${d7pct?d7pct+'%':'—'}</td>
+              <td>${cd7?'₹'+cd7:'—'}</td>
               <td>${w.revenue>0?'₹'+w.revenue.toFixed(0):'—'}</td>
-            </tr>`).join('')}</tbody>
+              <td>${roas&&w.revenue>0?roas+'×':'—'}</td>
+            </tr>`;}).join('')}</tbody>
           </table>
         </div>
       </div>`;
@@ -1987,10 +2009,8 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closePopup(); }
 function pdtSwitch(mode) {
   document.getElementById('pdt-daily-view').style.display  = mode==='daily'  ? '' : 'none';
   document.getElementById('pdt-weekly-view').style.display = mode==='weekly' ? '' : 'none';
-  const on  = 'background:var(--blue);color:#fff;border-color:var(--blue)';
-  const off = 'background:transparent;color:var(--text2);border-color:var(--border)';
-  document.getElementById('pdt-daily-btn').style.cssText  = mode==='daily'  ? on : off;
-  document.getElementById('pdt-weekly-btn').style.cssText = mode==='weekly' ? on : off;
+  document.getElementById('pdt-daily-btn').className  = 'pdt-tab ' + (mode==='daily'  ? 'pdt-tab-on' : 'pdt-tab-off');
+  document.getElementById('pdt-weekly-btn').className = 'pdt-tab ' + (mode==='weekly' ? 'pdt-tab-on' : 'pdt-tab-off');
 }
 
 // ── NOTES FILTER ──
