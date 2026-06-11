@@ -1880,24 +1880,59 @@ function openPopup(key) {
       <div class="popup-id-list">${(c.utm_ids||[]).map(id=>`<span class="popup-id-pill">${id}</span>`).join('')}</div>
     </div>
 
-    ${hasDailyData ? `
-    <div class="popup-daily">
-      <div class="popup-daily-title">Daily Raw Data (${daily.length} days)</div>
-      <table class="pdt">
-        <thead><tr>
-          <th>Date</th><th>Spend ₹</th><th>Leads</th><th>CPL ₹</th><th>D3+</th><th>D7+</th><th>Revenue ₹</th>
-        </tr></thead>
-        <tbody>${daily.map(d=>`<tr>
-          <td>${d.date}</td>
-          <td>${d.spend>0?'₹'+d.spend.toFixed(0):'—'}</td>
-          <td>${d.leads>0?d.leads:'—'}</td>
-          <td>${d.spend>0&&d.leads>0?'₹'+(d.spend/d.leads).toFixed(2):'—'}</td>
-          <td>${d.d3>0?d.d3:'—'}</td>
-          <td>${d.d7>0?d.d7:'—'}</td>
-          <td>${d.revenue>0?'₹'+d.revenue.toFixed(0):'—'}</td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>` : `<div class="no-daily">📂 Upload a CSV to see daily trend data</div>`}
+    ${hasDailyData ? (() => {
+      // Build weekly aggregates (Mon–Sun ISO weeks)
+      const weekMap = new Map();
+      daily.forEach(d => {
+        const dt = new Date(d.date);
+        const dow = (dt.getUTCDay() + 6) % 7; // 0=Mon
+        const mon = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate() - dow));
+        const wk = mon.toISOString().slice(0,10);
+        if (!weekMap.has(wk)) weekMap.set(wk, {week:wk, spend:0, leads:0, d3:0, d7:0, revenue:0, days:0});
+        const r = weekMap.get(wk);
+        r.spend += d.spend; r.leads += d.leads; r.d3 += (d.d3||0); r.d7 += (d.d7||0); r.revenue += (d.revenue||0); r.days++;
+      });
+      const weeks = [...weekMap.values()].sort((a,b)=>a.week.localeCompare(b.week));
+      return `
+      <div class="popup-daily">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="popup-daily-title" style="margin-bottom:0">Raw Data</div>
+          <div style="display:flex;gap:4px">
+            <button id="pdt-daily-btn" onclick="pdtSwitch('daily')" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;border:1px solid var(--blue);background:var(--blue);color:#fff;cursor:pointer;font-family:'IBM Plex Mono',monospace">Daily</button>
+            <button id="pdt-weekly-btn" onclick="pdtSwitch('weekly')" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'IBM Plex Mono',monospace">Weekly</button>
+          </div>
+        </div>
+        <div id="pdt-daily-view">
+          <table class="pdt">
+            <thead><tr><th>Date</th><th>Spend ₹</th><th>Leads</th><th>CPL ₹</th><th>D3+</th><th>D7+</th><th>Revenue ₹</th></tr></thead>
+            <tbody>${daily.map(d=>`<tr>
+              <td>${d.date}</td>
+              <td>${d.spend>0?'₹'+d.spend.toFixed(0):'—'}</td>
+              <td>${d.leads>0?d.leads:'—'}</td>
+              <td>${d.spend>0&&d.leads>0?'₹'+(d.spend/d.leads).toFixed(2):'—'}</td>
+              <td>${d.d3>0?d.d3:'—'}</td>
+              <td>${d.d7>0?d.d7:'—'}</td>
+              <td>${d.revenue>0?'₹'+d.revenue.toFixed(0):'—'}</td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div>
+        <div id="pdt-weekly-view" style="display:none">
+          <table class="pdt">
+            <thead><tr><th>Week of</th><th>Days</th><th>Spend ₹</th><th>Leads</th><th>CPL ₹</th><th>D3+</th><th>D7+</th><th>Revenue ₹</th></tr></thead>
+            <tbody>${weeks.map(w=>`<tr>
+              <td>${w.week}</td>
+              <td style="color:var(--text3)">${w.days}</td>
+              <td>${w.spend>0?'₹'+w.spend.toFixed(0):'—'}</td>
+              <td>${w.leads>0?w.leads:'—'}</td>
+              <td>${w.spend>0&&w.leads>0?'₹'+(w.spend/w.leads).toFixed(2):'—'}</td>
+              <td>${w.d3>0?w.d3:'—'}</td>
+              <td>${w.d7>0?w.d7:'—'}</td>
+              <td>${w.revenue>0?'₹'+w.revenue.toFixed(0):'—'}</td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`;
+    })() : `<div class="no-daily">📂 Upload a CSV to see daily trend data</div>`}
   `;
 
   document.getElementById('creativePopup').classList.add('open');
@@ -1948,6 +1983,15 @@ function closePopup() {
 }
 
 document.addEventListener('keydown', e => { if(e.key==='Escape') closePopup(); });
+
+function pdtSwitch(mode) {
+  document.getElementById('pdt-daily-view').style.display  = mode==='daily'  ? '' : 'none';
+  document.getElementById('pdt-weekly-view').style.display = mode==='weekly' ? '' : 'none';
+  const on  = 'background:var(--blue);color:#fff;border-color:var(--blue)';
+  const off = 'background:transparent;color:var(--text2);border-color:var(--border)';
+  document.getElementById('pdt-daily-btn').style.cssText  = mode==='daily'  ? on : off;
+  document.getElementById('pdt-weekly-btn').style.cssText = mode==='weekly' ? on : off;
+}
 
 // ── NOTES FILTER ──
 const NOTES_TAB_MAP = {all:{s:allS,btn:'allBtnNotes',render:()=>renderAll()},cpl:{s:cplS,btn:'cplBtnNotes',render:()=>renderCpl()},d3:{s:d3S,btn:'d3BtnNotes',render:()=>renderD3()},ro:{s:roS,btn:'roBtnNotes',render:()=>renderRo()},sc:{s:scS,btn:'scBtnNotes',render:()=>renderScaled()}};
