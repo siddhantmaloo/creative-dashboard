@@ -1928,13 +1928,13 @@ function openPopup(key) {
         </div>
         <div id="pdt-weekly-view" style="display:none">
           <table class="pdt">
-            <thead><tr><th>Week</th><th>Days</th><th>Spend ₹</th><th>Leads</th><th>CPL ₹</th><th>D3+</th><th>D3%</th><th>Cost D3</th><th>D7+</th><th>D7%</th><th>Cost D7</th><th>Revenue ₹</th><th>ROAS</th></tr></thead>
+            <thead><tr><th>Week</th><th>Days</th><th>Spend ₹</th><th>Leads</th><th>CPL ₹</th><th>D3+</th><th>D7+</th><th>D3%</th><th>D7%</th><th>Cost D3</th><th>Cost D7</th><th>Revenue ₹</th><th>ROAS</th></tr></thead>
             <tbody>${weeks.map(w => {
               const cpl   = w.leads>0 ? (w.spend/w.leads).toFixed(2) : null;
-              const d3pct = w.leads>0 ? (w.d3/w.leads*100).toFixed(1) : null;
-              const d7pct = w.leads>0 ? (w.d7/w.leads*100).toFixed(1) : null;
-              const cd3   = w.d3>0   ? (w.spend/w.d3).toFixed(2) : null;
-              const cd7   = w.d7>0   ? (w.spend/w.d7).toFixed(2) : null;
+              const d3pct = w.leads>0 ? Math.round(w.d3/w.leads*100) : null;
+              const d7pct = w.leads>0 ? Math.round(w.d7/w.leads*100) : null;
+              const cd3   = w.d3>0   ? Math.round(w.spend/w.d3) : null;
+              const cd7   = w.d7>0   ? Math.round(w.spend/w.d7) : null;
               const roas  = w.spend>0 ? (w.revenue/w.spend).toFixed(2) : null;
               return `<tr>
               <td style="white-space:nowrap"><span style="color:var(--text2);font-size:10px">W${w.wNum}</span> <span style="color:var(--text3);font-size:10px">(${fmtD(w.week)}–${fmtD(w.wEnd)})</span></td>
@@ -1943,11 +1943,11 @@ function openPopup(key) {
               <td>${w.leads>0?w.leads:'—'}</td>
               <td>${cpl?'₹'+cpl:'—'}</td>
               <td>${w.d3>0?w.d3:'—'}</td>
-              <td>${d3pct?d3pct+'%':'—'}</td>
-              <td>${cd3?'₹'+cd3:'—'}</td>
               <td>${w.d7>0?w.d7:'—'}</td>
-              <td>${d7pct?d7pct+'%':'—'}</td>
-              <td>${cd7?'₹'+cd7:'—'}</td>
+              <td>${d3pct!=null?d3pct+'%':'—'}</td>
+              <td>${d7pct!=null?d7pct+'%':'—'}</td>
+              <td>${cd3!=null?'₹'+cd3:'—'}</td>
+              <td>${cd7!=null?'₹'+cd7:'—'}</td>
               <td>${w.revenue>0?'₹'+w.revenue.toFixed(0):'—'}</td>
               <td>${roas&&w.revenue>0?roas+'×':'—'}</td>
             </tr>`;}).join('')}</tbody>
