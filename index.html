@@ -2514,7 +2514,7 @@ function processCSV(text) {
   const headers = lines[0].split(',').map(h => h.trim().replace(/\r/,''));
 
   // Validate required columns
-  const required = ['activity_date','utm_creative_id','ad_name','go_live_date',
+  const required = ['activity_date','utm_creative_id','ad_name',
                     'daily_spend','daily_leads','daily_revenue_ex_tax',
                     'daily_attended_3_plus','daily_attended_7_plus'];
   const missing = required.filter(r => !headers.includes(r));
@@ -2596,7 +2596,6 @@ function processCSV(text) {
     const adName = (cols[idx['ad_name']] || '').trim();
     const key = extractKey(adName);
     const actDate = parseDate(cols[idx['activity_date']]);
-    const goLiveDate = parseDate(cols[idx['go_live_date']]);
     const utmId = (cols[idx['utm_creative_id']] || '').trim();
     const spend = cleanNum(cols[idx['daily_spend']]);
     const leads = cleanNum(cols[idx['daily_leads']]);
@@ -2608,12 +2607,13 @@ function processCSV(text) {
 
     if (!creativeMap[key]) {
       creativeMap[key] = {
-        adName, goLive: goLiveDate,
+        adName, goLive: null,
         days: {}, totalSpend: 0, totalLeads: 0
       };
     }
     const c = creativeMap[key];
-    if (!c.goLive || (goLiveDate && goLiveDate < c.goLive)) c.goLive = goLiveDate;
+    // Use first date with actual spend as go-live anchor
+    if (spend >= 5 && (!c.goLive || actDate < c.goLive)) c.goLive = actDate;
 
     const dk = fmtDate(actDate);
     if (!c.days[dk]) c.days[dk] = {spend:0,leads:0,revenue:0,d3:0,d7:0};
