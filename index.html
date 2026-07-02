@@ -2612,8 +2612,8 @@ function processCSV(text) {
       };
     }
     const c = creativeMap[key];
-    // Use first date with actual spend as go-live anchor
-    if (spend >= 5 && (!c.goLive || actDate < c.goLive)) c.goLive = actDate;
+    // Use first date with any spend as go-live anchor (>= ₹5 threshold only applies to active_days)
+    if (spend > 0 && (!c.goLive || actDate < c.goLive)) c.goLive = actDate;
 
     const dk = fmtDate(actDate);
     if (!c.days[dk]) c.days[dk] = {spend:0,leads:0,revenue:0,d3:0,d7:0};
