@@ -2555,6 +2555,8 @@ function processCSV(text) {
     if (m) return m[0];
     m = adName.match(/CR-([\w]+_AI[\w]*)-VideoAd/);
     if (m) return m[1];
+    m = adName.match(/CR-(AI_[\w]+)-VideoAd/);
+    if (m) return m[1];
     m = adName.match(/-(StaticAd\d+|CarouselAd\d+)-/);
     if (m) return m[1];
     return adName;
@@ -2570,7 +2572,7 @@ function processCSV(text) {
       if (key.toLowerCase().includes(p.toLowerCase())) return 'Problem Statement';
     for (const r of ['Review','Testimonial','SeediaChadteHi','AreAajNhi'])
       if (key.toLowerCase().includes(r.toLowerCase())) return 'Social Proof';
-    for (const p of ['AI_','_AI','AIReview','AiCreative','FatAI','Brain_AI','ITWork_AI'])
+    for (const p of ['AI_','_AI','AIReview','AiCreative','FatAI','Brain_AI','ITWork_AI','CousinAI','ShushmaPark'])
       if (key.toLowerCase().includes(p.toLowerCase())) return 'AI Creative';
     return 'Generic';
   }
